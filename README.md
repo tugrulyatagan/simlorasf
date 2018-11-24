@@ -1,0 +1,2 @@
+# simlorafs
+LoRa SF simulator
