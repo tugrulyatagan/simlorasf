@@ -17,6 +17,7 @@
 
 import math
 import random
+import bisect
 
 NODE_NUMBER = 10
 TOPOLOGY_RADIUS = 10000  # meters
@@ -32,6 +33,9 @@ class Location:
         self.x = x
         self.y = y
 
+    def __repr__(self):
+        return '{},{}'.format(self.x, self.y)
+
     @staticmethod
     def get_distance(a, b):
         return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
@@ -46,13 +50,54 @@ class PacketStatus:
 
 
 class Packet:
-    def __init__(self, time, sf, source, destination=0):
+    def __init__(self, time, sf, channel, source, destination=0):
         self.time = time
         self.sf = sf
-        self.duration = 0.005  # s
+        self.channel = channel
         self.source = source
         self.destination = destination
         self.status = PacketStatus.pending
+        self.duration = self.calculate_transmission_duration()
+        self.radius = self.calculate_receive_radius()
+
+    def __lt__(self, other):
+        return self.time < other.time
+
+    def __repr__(self):
+        return '(t={},src={},dst={},sf={},dur={})'.format(self.time, self.source, self.destination, self.sf, self.duration)
+
+    def calculate_transmission_duration(self):
+        # TODO
+        if self.sf == 7:
+            pass
+        elif self.sf == 8:
+            pass
+        elif self.sf == 9:
+            pass
+        elif self.sf == 10:
+            pass
+        elif self.sf == 11:
+            pass
+        elif self.sf == 12:
+            pass
+        return 0.05
+
+    def calculate_receive_radius(self):
+        # TODO: receive radius and interference radius may different
+        # TODO
+        if self.sf == 7:
+            pass
+        elif self.sf == 8:
+            pass
+        elif self.sf == 9:
+            pass
+        elif self.sf == 10:
+            pass
+        elif self.sf == 11:
+            pass
+        elif self.sf == 12:
+            pass
+        return 3000
 
 
 class Node:
@@ -63,36 +108,21 @@ class Node:
         Node.idCounter += 1
         self.id = Node.idCounter
         self.txList = []
-        self.rxList = []
-
-    @staticmethod
-    def calculate_transmission_duration(self, sf, size):
-        if sf == 7:
-            pass
-        elif sf == 8:
-            pass
-        elif sf == 9:
-            pass
-        elif sf == 10:
-            pass
-        elif sf == 11:
-            pass
-        elif sf == 12:
-            pass
 
     def schedule_tx(self):
+        # Poisson interval
         if len(self.txList) == 0:
             next_time = random.expovariate(PACKET_RATE)
         else:
             next_time = self.txList[-1].time + random.expovariate(PACKET_RATE)
 
         if next_time > SIMULATION_DURATION:
-            return
+            return None
 
-        new_packet = Packet(time=next_time, sf=12, source=self.id)
+        new_packet = Packet(time=next_time, sf=12, channel=10, source=self.id)
         self.txList.append(new_packet)
 
-        print(new_packet.time)
+        return new_packet
 
 
 class Gateway(Node):
@@ -105,18 +135,21 @@ class Topology:
         self.gateway_list = []
         self.node_list = []
 
+    def get_node(self, id):
+        return self.node_list[id - len(self.gateway_list) - 1]
+
     def write_to_file(self, file_name):
         with open(file_name, 'w') as file:
             for gateway in self.gateway_list:
-                file.write('g {} {},{}\n'.format(gateway.id, gateway.location.x, gateway.location.y))
+                file.write('g {} {}\n'.format(gateway.id, gateway.location))
             for node in self.node_list:
-                file.write('n {} {},{}\n'.format(node.id, node.location.x, node.location.y))
+                file.write('n {} {}\n'.format(node.id, node.location))
 
     def show(self):
         for gateway in self.gateway_list:
-            print('g {} {},{}'.format(gateway.id, gateway.location.x, gateway.location.y))
+            print('g {} {}'.format(gateway.id, gateway.location))
         for node in self.node_list:
-            print('n {} {},{}'.format(node.id, node.location.x, node.location.y))
+            print('n {} {}'.format(node.id, node.location))
 
     @staticmethod
     def create_random_topology(node_number, radius):
@@ -138,12 +171,35 @@ class Simulation:
     def __init__(self, topology):
         self.eventQueue = []
         self.topology = topology
+        self.currentTime = 0
+
+    def add_to_event_queue(self, packet):
+        if packet is not None:
+            bisect.insort_left(self.eventQueue, packet)
+
+    def show_events(self):
+        for event in self.eventQueue:
+            print('{} => {} @ {}'.format(event.source, event.destination, event.time))
+
+    def write_events_to_file(self, file_name):
+        with open(file_name, 'w') as file:
+            for event in self.eventQueue:
+                file.write('{} => {} @ {}\n'.format(event.source, event.destination, event.time))
 
     def run(self):
         # schedule initial node transmissions
-        for n in self.topology.node_list:
-            n.schedule_tx()
+        for tx_node in self.topology.node_list:
+            self.add_to_event_queue(tx_node.schedule_tx())
 
+        for index, event in enumerate(self.eventQueue):
+            tx_node = self.topology.get_node(event.source)
+            # print("my={}".format(tx_node.location))
+            #
+            # if index+1 < len(self.eventQueue):
+            #     next_tx_node = self.topology.get_node(self.eventQueue[index+1].source)
+            #     print("next={}".format(next_tx_node.location))
+
+            self.add_to_event_queue(tx_node.schedule_tx())
 
 
 topology = Topology.create_random_topology(node_number=NODE_NUMBER, radius=TOPOLOGY_RADIUS)
@@ -152,3 +208,5 @@ topology.write_to_file('topology.txt')
 
 simulation = Simulation(topology)
 simulation.run()
+simulation.show_events()
+simulation.write_events_to_file('events.txt')
