@@ -15,231 +15,36 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-import math
 import random
-import bisect
+import matplotlib.pyplot as plt
+from topology import Topology
+from simulation import Simulation
 
 # All units are SI base units
-
 NODE_NUMBER = 10
-TOPOLOGY_RADIUS = 10000  # meters
-SIMULATION_DURATION = 15  # seconds
-PACKET_RATE = 0.5  # arrivals per second
-PACKET_SIZE = 70  # should be between 51 and 222
-
+TOPOLOGY_RADIUS = 10500  # meters
+SIMULATION_DURATION = 3600  # seconds
+PACKET_RATE = 0.005  # per second
+PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
 random.seed(42)  # for now seed is constant
 
 
-class Location:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+# topology = Topology.create_random_topology(node_number=NODE_NUMBER, radius=TOPOLOGY_RADIUS)
+# # topology.write_to_file('output/topology.txt')
+#
+# simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION)
+# simulation.run()
+# # simulation.write_events_to_file('output/events.txt')
+# simulation.show_results()
 
-    def __repr__(self):
-        return '({},{})'.format(self.x, self.y)
+node_number_list = range(50, 1000, 50)
+results = []
+for n in node_number_list:
+    topology = Topology.create_random_topology(node_number=n, radius=TOPOLOGY_RADIUS)
+    simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION)
+    results.append(simulation.run())
 
-    @staticmethod
-    def get_distance(a, b):
-        return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+pdr_list = [result.pdr for result in results]
 
-
-class PacketStatus:
-    pending = 0
-    transmitted = 1
-    interfered = 2
-    under_sensitivity = 3
-
-
-class Packet:
-    def __init__(self, time, sf, channel, source, destination=0):
-        self.time = time
-        self.sf = sf
-        self.channel = channel
-        self.source = source
-        self.destination = destination
-        self.status = PacketStatus.pending
-        self.duration = self.calculate_transmission_duration()
-        self.receive_radius = self.calculate_receive_radius()
-        self.interference_radius = self.calculate_interference_radius()
-
-    def __lt__(self, other):
-        return self.time < other.time
-
-    def __repr__(self):
-        return '(t={},src={},dst={},sf={},dur={},stat={},rcv={},ifr={})'.format(self.time, self.source, self.destination, self.sf, self.duration, self.status, self.receive_radius, self.interference_radius)
-
-    def calculate_transmission_duration(self):
-        # TODO
-        if self.sf == 7:
-            pass
-        elif self.sf == 8:
-            pass
-        elif self.sf == 9:
-            pass
-        elif self.sf == 10:
-            pass
-        elif self.sf == 11:
-            pass
-        elif self.sf == 12:
-            pass
-        return 0.1
-
-    def calculate_receive_radius(self):
-        # TODO
-        if self.sf == 7:
-            return 4000
-        elif self.sf == 8:
-            return 5000
-        elif self.sf == 9:
-            return 6000
-        elif self.sf == 10:
-            return 7000
-        elif self.sf == 11:
-            return 8000
-        elif self.sf == 12:
-            return 9000
-
-    def calculate_interference_radius(self):
-        # TODO
-        return 5000
-
-
-class Node:
-    idCounter = 0
-
-    def __init__(self, location):
-        self.location = location
-        Node.idCounter += 1
-        self.id = Node.idCounter
-        self.txList = []
-
-    def schedule_tx(self):
-        # Poisson interval
-        if len(self.txList) == 0:
-            next_time = random.expovariate(PACKET_RATE)
-        else:
-            next_time = self.txList[-1].time + random.expovariate(PACKET_RATE)
-
-        if next_time > SIMULATION_DURATION:
-            return None
-
-        new_packet = Packet(time=next_time, sf=12, channel=10, source=self.id)
-        self.txList.append(new_packet)
-
-        return new_packet
-
-
-class Gateway(Node):
-    def __init__(self, location):
-        Node.__init__(self, location)
-
-
-class Topology:
-    def __init__(self):
-        self.gateway_list = []
-        self.node_list = []
-
-    def get_node(self, id):
-        return self.node_list[id - len(self.gateway_list) - 1]
-
-    def get_gateway(self, id):
-        return self.gateway_list[id - 1]
-
-    def write_to_file(self, file_name):
-        with open(file_name, 'w') as file:
-            for gateway in self.gateway_list:
-                file.write('g {} {}\n'.format(gateway.id, gateway.location))
-            for node in self.node_list:
-                file.write('n {} {}\n'.format(node.id, node.location))
-
-    def show(self):
-        for gateway in self.gateway_list:
-            print('g {} {}'.format(gateway.id, gateway.location))
-        for node in self.node_list:
-            print('n {} {}'.format(node.id, node.location))
-
-    @staticmethod
-    def create_random_topology(node_number, radius):
-        topology = Topology()
-
-        gateway = Gateway(location=Location(0, 0))
-        topology.gateway_list.append(gateway)
-
-        for n in range(node_number):
-            x = random.randint(-radius, radius)
-            y = random.randint(-radius, radius)
-            node = Node(location=Location(x, y))
-            topology.node_list.append(node)
-
-        return topology
-
-
-class Simulation:
-    def __init__(self, topology):
-        self.eventQueue = []
-        self.topology = topology
-        self.currentTime = 0
-
-    def add_to_event_queue(self, packet):
-        if packet is not None:
-            bisect.insort_left(self.eventQueue, packet)
-
-    def show_events(self):
-        for event in self.eventQueue:
-            print('{}'.format(event))
-
-    def write_events_to_file(self, file_name):
-        with open(file_name, 'w') as file:
-            for event in self.eventQueue:
-                file.write('{}\n'.format(event))
-
-    def run(self):
-        # schedule initial node transmissions
-        for tx_node in self.topology.node_list:
-            self.add_to_event_queue(tx_node.schedule_tx())
-
-        for event_index, event in enumerate(self.eventQueue):
-            tx_node = self.topology.get_node(event.source)
-            event.status = PacketStatus.transmitted
-
-            rx_gw_list = []
-            # Check which gateways can receive
-            for gw in self.topology.gateway_list:
-                distance_to_gw = Location.get_distance(tx_node.location, gw.location)
-                if distance_to_gw > event.receive_radius:
-                    print('Under sensitivity for packet {} at gw {}'.format(event, gw.id))
-                else:
-                    rx_gw_list.append(gw)
-
-            if not rx_gw_list:
-                # No gateway received the packet
-                event.status = PacketStatus.under_sensitivity
-            else:
-                # Check overlapping events
-                for next_event_index in range(event_index+1, len(self.eventQueue)):
-                    next_event = self.eventQueue[next_event_index]
-                    if (event.time + event.duration) < next_event.time:
-                        break
-                    # Events are overlapping
-                    next_event_node = self.topology.get_node(next_event.source)
-                    print('{} and {} are overlapping'.format(event, next_event))
-
-                    # Check for interference at gateways
-                    for rx_gw in rx_gw_list:
-                        # Measure distance between interferer and gateways
-                        distance_between = Location.get_distance(rx_gw.location, next_event_node.location)
-                        if distance_between < next_event.interference_radius:
-                            print('Interference!!! Distance between {} and {} is {}'.format(rx_gw.id, next_event_node.id, distance_between))
-                            event.status = PacketStatus.interfered
-
-            self.add_to_event_queue(tx_node.schedule_tx())
-
-
-topology = Topology.create_random_topology(node_number=NODE_NUMBER, radius=TOPOLOGY_RADIUS)
-# topology.show()
-topology.write_to_file('output/topology.txt')
-
-simulation = Simulation(topology)
-simulation.run()
-# simulation.show_events()
-simulation.write_events_to_file('output/events.txt')
+plt.plot(node_number_list, pdr_list)
+plt.show()
