@@ -212,7 +212,7 @@ class Simulation:
                     rx_gw_list.append(gw)
 
             if not rx_gw_list:
-                # No gateway received
+                # No gateway received the packet
                 event.status = PacketStatus.under_sensitivity
             else:
                 # Check overlapping events
@@ -237,9 +237,9 @@ class Simulation:
 
 topology = Topology.create_random_topology(node_number=NODE_NUMBER, radius=TOPOLOGY_RADIUS)
 # topology.show()
-topology.write_to_file('topology.txt')
+topology.write_to_file('output/topology.txt')
 
 simulation = Simulation(topology)
 simulation.run()
 # simulation.show_events()
-simulation.write_events_to_file('events.txt')
+simulation.write_events_to_file('output/events.txt')
