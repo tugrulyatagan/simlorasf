@@ -27,7 +27,7 @@ class Node:
         self.id = Node.idCounter
         self.txList = []
 
-    def schedule_tx(self, packet_rate, packet_size, simulation_duration):
+    def schedule_tx(self, packet_rate, packet_size, simulation_duration, sf):
         # Poisson interval
         if len(self.txList) == 0:
             next_time = random.expovariate(packet_rate)
@@ -37,7 +37,7 @@ class Node:
         if next_time > simulation_duration:
             return None
 
-        new_packet = Packet(time=next_time, sf=12, bandwidth=125, source=self.id, size=packet_size)
+        new_packet = Packet(time=next_time, sf=sf, bandwidth=125, source=self.id, size=packet_size)
         self.txList.append(new_packet)
 
         return new_packet

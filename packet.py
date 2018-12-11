@@ -15,13 +15,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; If not, see <http://www.gnu.org/licenses/>.
 
+from enum import Enum
 from location import Location
+
 
 class PacketStatus:
     pending = 0
     transmitted = 1
     interfered = 2
     under_sensitivity = 3
+
+
+class PacketSf(Enum):
+    random = 0
+    lowest = 1
+    sf7 = 7
+    sf8 = 8
+    sf9 = 9
+    sf10 = 10
+    sf11 = 11
+    sf12 = 12
 
 
 class Packet:
@@ -45,33 +58,37 @@ class Packet:
     def calculate_transmission_duration(self):
         # https://docs.exploratory.engineering/lora/dr_sf/
         # TODO, consider BW
-        if self.sf == 7:
+        if self.sf == PacketSf.sf7:
             return (self.size * 8) / 5470
-        elif self.sf == 8:
+        elif self.sf == PacketSf.sf8:
             return (self.size * 8) / 3125
-        elif self.sf == 9:
+        elif self.sf == PacketSf.sf9:
             return (self.size * 8) / 1760
-        elif self.sf == 10:
+        elif self.sf == PacketSf.sf10:
             return (self.size * 8) / 980
-        elif self.sf == 11:
+        elif self.sf == PacketSf.sf11:
             return (self.size * 8) / 440
-        elif self.sf == 12:
+        elif self.sf == PacketSf.sf12:
             return (self.size * 8) / 250
+        else:
+            raise Exception()
 
     def calculate_receive_radius(self):
         # TODO
-        if self.sf == 7:
+        if self.sf == PacketSf.sf7:
             return 1250
-        elif self.sf == 8:
+        elif self.sf == PacketSf.sf8:
             return 2500
-        elif self.sf == 9:
+        elif self.sf == PacketSf.sf9:
             return 3750
-        elif self.sf == 10:
+        elif self.sf == PacketSf.sf10:
             return 5000
-        elif self.sf == 11:
+        elif self.sf == PacketSf.sf11:
             return 7500
-        elif self.sf == 12:
+        elif self.sf == PacketSf.sf12:
             return 10000
+        else:
+            raise Exception()
 
     def is_interfered_by(self, interferer_packet, topology, target_location):
         interferer_location = topology.get_node(interferer_packet.source).location

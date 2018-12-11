@@ -31,7 +31,7 @@ class SimulationResult:
 
 
 class Simulation:
-    def __init__(self, topology, packet_rate, packet_size, simulation_duration):
+    def __init__(self, topology, packet_rate, packet_size, simulation_duration, sf):
         self.eventQueue = []
         self.topology = topology
         self.currentTime = 0
@@ -39,6 +39,7 @@ class Simulation:
         self.packetSize = packet_size
         self.simulationDuration = simulation_duration
         self.simulationResult = SimulationResult()
+        self.sf = sf
         Node.idCounter = 0
 
     def add_to_event_queue(self, packet):
@@ -65,7 +66,7 @@ class Simulation:
     def run(self):
         # schedule initial node transmissions
         for tx_node in self.topology.node_list:
-            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration))
+            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=self.sf))
 
         for event_index, event in enumerate(self.eventQueue):
             tx_node = self.topology.get_node(event.source)
@@ -107,7 +108,7 @@ class Simulation:
                 event.status = PacketStatus.transmitted
 
             # Schedule next event for this node
-            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration))
+            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=self.sf))
 
         # Collect statistics
         for event in self.eventQueue:
