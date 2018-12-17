@@ -19,6 +19,8 @@ import bisect
 from packet import PacketStatus
 from location import Location
 from node import Node
+from packet import Packet
+
 
 
 class SimulationResult:
@@ -75,8 +77,10 @@ class Simulation:
             # Check which gateways can receive
             for gw in self.topology.gateway_list:
                 distance_to_gw = Location.get_distance(tx_node.location, gw.location)
-                if distance_to_gw > event.receive_radius:
-                    # print('Under sensitivity for packet {} at gw {}'.format(event, gw.id))
+                rx_sensitivity = Packet.get_receive_sensitivity(event.sf)
+                propagation_loss = Packet.calculate_propagation_loss(distance_to_gw)
+                if event.erp - propagation_loss < rx_sensitivity:
+                    # print('Under sensitivity {} - {} < {} for {} at gw {}'.format(event.erp, propagation_loss, rx_sensitivity, event, gw.id))
                     pass
                 else:
                     rx_gw_list.append(gw)
@@ -84,25 +88,25 @@ class Simulation:
             if not rx_gw_list:
                 # No gateway received the packet
                 event.status = PacketStatus.under_sensitivity
-            elif event.status == PacketStatus.pending:
-                # Check overlapping events
-                for next_event_index in range(event_index+1, len(self.eventQueue)):
-                    next_event = self.eventQueue[next_event_index]
-                    if (event.time + event.duration) < next_event.time:
-                        break
-                    # Events are overlapping
-                    next_event_node = self.topology.get_node(next_event.source)
-                    # print('{} and {} are overlapping'.format(event, next_event))
-
-                    # Check for interference at gateways
-                    for rx_gw in rx_gw_list:
-                        # Measure distance between interferer and gateways
-                        if event.is_interfered_by(next_event, self.topology, rx_gw.location):
-                            # print('{} is interfered by {}'.format(event, next_event))
-                            event.status = PacketStatus.interfered
-                        else:
-                            # print('{} is interfered by {}'.format(next_event, event))
-                            next_event.status = PacketStatus.interfered
+            # elif event.status == PacketStatus.pending:
+            #     # Check overlapping events
+            #     for next_event_index in range(event_index+1, len(self.eventQueue)):
+            #         next_event = self.eventQueue[next_event_index]
+            #         if (event.time + event.duration) < next_event.time:
+            #             break
+            #         # Events are overlapping
+            #         next_event_node = self.topology.get_node(next_event.source)
+            #         # print('{} and {} are overlapping'.format(event, next_event))
+            #
+            #         # Check for interference at gateways
+            #         for rx_gw in rx_gw_list:
+            #             # Measure distance between interferer and gateways
+            #             if event.is_interfered_by(next_event, self.topology, rx_gw.location):
+            #                 # print('{} is interfered by {}'.format(event, next_event))
+            #                 event.status = PacketStatus.interfered
+            #             else:
+            #                 # print('{} is interfered by {}'.format(next_event, event))
+            #                 next_event.status = PacketStatus.interfered
 
             if event.status == PacketStatus.pending:
                 event.status = PacketStatus.transmitted
