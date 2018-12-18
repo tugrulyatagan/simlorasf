@@ -47,6 +47,8 @@ class Packet:
         self.status = PacketStatus.pending
         self.size = size
         self.duration = Packet.calculate_transmission_duration(sf, size)
+        # https://lora-alliance.org/sites/default/files/2018-04/lorawantm_regional_parameters_v1.1rb_-_final.pdf
+        self.frequency = 868.1  # TODO
         self.bandwidth = 125  # TODO
         self.erp = 14  # TODO Europe ISM g1.1. g1.2 Max ERP
 
@@ -54,11 +56,12 @@ class Packet:
         return self.time < other.time
 
     def __repr__(self):
-        return '(t={:6.3f},src={:>3},dst={:>3},sf={:>2},bw={},dur={:2.3f},erp={},stat={})'.format(self.time, self.source, self.destination, self.sf.value, self.bandwidth, self.duration, self.erp, self.status)
+        return '(t={:.3f},src={},dst={},sf={},bw={},dur={:.3f},erp={},stat={})'.format(self.time, self.source, self.destination, self.sf.value, self.bandwidth, self.duration, self.erp, self.status)
 
     @staticmethod
     def calculate_transmission_duration(sf, size):
         # https://docs.exploratory.engineering/lora/dr_sf/
+        # https://lora-alliance.org/sites/default/files/2018-04/lorawantm_regional_parameters_v1.1rb_-_final.pdf
         # TODO, consider BW
         if sf == PacketSf.sf7:
             return (size * 8) / 5470.0
