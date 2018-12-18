@@ -17,19 +17,20 @@
 
 import bisect
 from packet import PacketStatus
+from packet import PacketSf
 from location import Location
 from node import Node
 from packet import Packet
 
 
-
 class SimulationResult:
     def __init__(self):
-        self.total = 0
-        self.successful = 0
-        self.under_sensitivity = 0
-        self.interference = 0
+        self.totalPacket = 0
+        self.successfulPacket = 0
+        self.underSensitivityPacket = 0
+        self.interferencePacket = 0
         self.pdr = 0
+        # TODO: add total throughput
 
 
 class Simulation:
@@ -54,10 +55,10 @@ class Simulation:
 
     def show_results(self):
         print('Results:')
-        print(' Total transmission: {}'.format(self.simulationResult.total))
-        print(' Successful transmission: {}'.format(self.simulationResult.successful))
-        print(' Lost due to under sensitivity: {}'.format(self.simulationResult.under_sensitivity))
-        print(' Lost due to interference: {}'.format(self.simulationResult.interference))
+        print(' Total packet number: {}'.format(self.simulationResult.totalPacket))
+        print(' Successful packet number: {}'.format(self.simulationResult.successfulPacket))
+        print(' Under sensitivity packet number: {}'.format(self.simulationResult.underSensitivityPacket))
+        print(' Interference packet number: {}'.format(self.simulationResult.interferencePacket))
         print(' PDR: {}'.format(self.simulationResult.pdr))
 
     def write_events_to_file(self, file_name):
@@ -66,9 +67,13 @@ class Simulation:
                 file.write('{}\n'.format(event))
 
     def run(self):
-        # schedule initial node transmissions
+        # Schedule initial node transmissions
         for tx_node in self.topology.node_list:
-            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=self.sf))
+            if self.sf == PacketSf.lowest:
+                sf = tx_node.lowestSf
+            else:
+                sf = self.sf
+            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=sf))
 
         for event_index, event in enumerate(self.eventQueue):
             tx_node = self.topology.get_node(event.source)
@@ -112,17 +117,21 @@ class Simulation:
                 event.status = PacketStatus.transmitted
 
             # Schedule next event for this node
-            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=self.sf))
+            if self.sf == PacketSf.lowest:
+                sf = tx_node.lowestSf
+            else:
+                sf = self.sf
+            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=sf))
 
         # Collect statistics
         for event in self.eventQueue:
-            self.simulationResult.total += 1
+            self.simulationResult.totalPacket += 1
             if event.status == PacketStatus.under_sensitivity:
-                self.simulationResult.under_sensitivity += 1
+                self.simulationResult.underSensitivityPacket += 1
             elif event.status == PacketStatus.interfered:
-                self.simulationResult.interference += 1
+                self.simulationResult.interferencePacket += 1
             elif event.status == PacketStatus.transmitted:
-                self.simulationResult.successful += 1
-        self.simulationResult.pdr = self.simulationResult.successful / self.simulationResult.total
+                self.simulationResult.successfulPacket += 1
+        self.simulationResult.pdr = self.simulationResult.successfulPacket / self.simulationResult.totalPacket
 
         return self.simulationResult

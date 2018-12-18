@@ -24,7 +24,7 @@ class Location:
         self.y = y
 
     def __repr__(self):
-        return '({},{})'.format(self.x, self.y)
+        return '({:>6},{:>6})'.format(self.x, self.y)
 
     @staticmethod
     def get_distance(a, b):

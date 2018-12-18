@@ -30,11 +30,13 @@ random.seed(42)  # for now seed is constant
 
 
 topology = Topology.create_random_topology(node_number=10, radius=TOPOLOGY_RADIUS)
-# topology.write_to_file('output/topology.txt')
+topology.write_to_file('output/topology.txt')
+topology.show()
 
-simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.sf12)
+simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.lowest)
 simulation.run()
 # simulation.write_events_to_file('output/events.txt')
+simulation.show_events()
 simulation.show_results()
 
 # node_number_list = range(50, 1001, 50)

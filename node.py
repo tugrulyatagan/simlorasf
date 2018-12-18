@@ -26,6 +26,13 @@ class Node:
         Node.idCounter += 1
         self.id = Node.idCounter
         self.txList = []
+        self.lowestSf = None
+
+    def __repr__(self):
+        if self.__class__ == Gateway:
+            return 'g {:>3} {}'.format(self.id, self.location)
+        else:
+            return 'n {:>3} {} {:>2}'.format(self.id, self.location, self.lowestSf.value)
 
     def schedule_tx(self, packet_rate, packet_size, simulation_duration, sf):
         # Poisson interval
@@ -37,7 +44,7 @@ class Node:
         if next_time > simulation_duration:
             return None
 
-        new_packet = Packet(time=next_time, sf=sf, bandwidth=125, source=self.id, size=packet_size)
+        new_packet = Packet(time=next_time, sf=sf, source=self.id, size=packet_size)
         self.txList.append(new_packet)
 
         return new_packet

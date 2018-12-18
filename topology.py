@@ -19,6 +19,7 @@ import random
 from location import Location
 from node import Node
 from node import Gateway
+from packet import Packet
 
 
 class Topology:
@@ -35,15 +36,28 @@ class Topology:
     def write_to_file(self, file_name):
         with open(file_name, 'w') as file:
             for gateway in self.gateway_list:
-                file.write('g {} {}\n'.format(gateway.id, gateway.location))
+                file.write('{}\n'.format(gateway))
             for node in self.node_list:
-                file.write('n {} {}\n'.format(node.id, node.location))
+                file.write('{}\n'.format(node))
 
     def show(self):
         for gateway in self.gateway_list:
-            print('g {} {}'.format(gateway.id, gateway.location))
+            print('{}'.format(gateway))
         for node in self.node_list:
-            print('n {} {}'.format(node.id, node.location))
+            print('{}'.format(node))
+
+    def get_get_nearest_gw(self, location):
+        nearestGateway = None
+        nearestDistance = None
+        for gateway in self.gateway_list:
+            distance = Location.get_distance(gateway.location, location)
+            if nearestGateway is None:
+                nearestGateway = gateway
+                nearestDistance = distance
+            elif distance < nearestDistance:
+                nearestGateway = gateway
+                nearestDistance = distance
+        return nearestGateway, nearestDistance
 
     @staticmethod
     def create_random_topology(node_number, radius):
@@ -59,5 +73,10 @@ class Topology:
                 continue
             node = Node(location=Location(x, y))
             topology.node_list.append(node)
+
+        # Find lowest SF for nodes
+        for tx_node in topology.node_list:
+            _, nearestDistance = topology.get_get_nearest_gw(tx_node.location)
+            tx_node.lowestSf = Packet.get_lowest_sf(distance=nearestDistance)
 
         return topology
