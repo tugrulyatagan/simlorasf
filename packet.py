@@ -128,9 +128,12 @@ class Packet:
 
     @staticmethod
     def calculate_tx_energy_consumption(tx_power_dbm, duration):
-        if tx_power_dbm == 14:
+        return Packet.dbm_to_watt(tx_power_dbm) * duration
+
+    @staticmethod
+    def dbm_to_watt(dbm):
+        if dbm == 14:
             # Pre calculated value for commonly used tx_power_dbm
-            tx_power_watt = 0.025118864315095794
+            return 0.025118864315095794
         else:
-            tx_power_watt = (10 ** (tx_power_dbm/10)) / 1000.0
-        return tx_power_watt * duration
+            return (10 ** (dbm/10)) / 1000.0

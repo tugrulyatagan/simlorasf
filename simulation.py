@@ -102,7 +102,8 @@ class Simulation:
                 sf = PacketSf.get_random()
             else:
                 sf = self.sf
-            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=sf))
+            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize,
+                                                        simulation_duration=self.simulationDuration, sf=sf))
 
         for event_index, event in enumerate(self.eventQueue):
             tx_node = self.topology.get_node(event.source)
@@ -114,33 +115,65 @@ class Simulation:
                 rx_sensitivity = Packet.get_receive_sensitivity(event.sf)
                 propagation_loss = Packet.calculate_propagation_loss(distance_to_gw)
                 if event.tx_power - propagation_loss < rx_sensitivity:
-                    # print('Under sensitivity {} - {} < {} for {} at gw {}'.format(event.tx_power, propagation_loss, rx_sensitivity, event, gw.id))
+                    # print('Under sensitivity ({} - {:.3f}) < {} for {} at gw {}'.format(event.tx_power, propagation_loss, rx_sensitivity, event, gw.id))
                     pass
                 else:
                     rx_gw_list.append(gw)
 
-            if not rx_gw_list:
+            if len(rx_gw_list) == 0:
                 # No gateway received the packet
                 event.status = PacketStatus.under_sensitivity
-            # elif event.status == PacketStatus.pending:
-            #     # Check overlapping events
-            #     for next_event_index in range(event_index+1, len(self.eventQueue)):
-            #         next_event = self.eventQueue[next_event_index]
-            #         if (event.time + event.duration) < next_event.time:
-            #             break
-            #         # Events are overlapping
-            #         next_event_node = self.topology.get_node(next_event.source)
-            #         # print('{} and {} are overlapping'.format(event, next_event))
-            #
-            #         # Check for interference at gateways
-            #         for rx_gw in rx_gw_list:
-            #             # Measure distance between interferer and gateways
-            #             if event.is_interfered_by(next_event, self.topology, rx_gw.location):
-            #                 # print('{} is interfered by {}'.format(event, next_event))
-            #                 event.status = PacketStatus.interfered
-            #             else:
-            #                 # print('{} is interfered by {}'.format(next_event, event))
-            #                 next_event.status = PacketStatus.interfered
+            else:
+                # Check overlapping events
+                overlapping_events = []
+                for previous_event_index in range(event_index - 1, 0, -1):
+                    previous_event = self.eventQueue[previous_event_index]
+                    if (previous_event.time + previous_event.duration) < event.time:
+                        break
+                    # Events are overlapping
+                    overlapping_events.append(previous_event)
+                    print('previous {} and {} are overlapping for {:.3f} s'.format(previous_event, event,
+                                                                          previous_event.time + previous_event.duration - event.time))
+
+                for next_event_index in range(event_index + 1, len(self.eventQueue)):
+                    next_event = self.eventQueue[next_event_index]
+                    if (event.time + event.duration) < next_event.time:
+                        break
+                    # Events are overlapping
+                    overlapping_events.append(next_event)
+                    print('next {} and {} are overlapping for {:.3f} s'.format(next_event, event,
+                                                                          event.time + event.duration - next_event.time))
+
+                # if len(overlapping_events) > 0:
+                #     # Check interference at gateways
+                #     for rx_gw in rx_gw_list:
+                #         for interferer_event in overlapping_events:
+                #             overlap_duration = event.time + event.duration - interferer_event.time
+                #             interferer_node = self.topology.get_node(interferer_event.source)
+                #             interferer_to_gw_distance = Location.get_distance(rx_gw.location, interferer_node.location)
+                #             interferer_propagation_loss = Packet.calculate_propagation_loss(interferer_to_gw_distance)
+                #             interferer_power_dbm = interferer_event.tx_power - interferer_propagation_loss
+                #             interferer_power_watt = Packet.dbm_to_watt(interferer_power_dbm)
+                #             interference_energy = overlap_duration * interferer_power_watt
+                #
+                #             print('interferer_node={},'
+                #                   'rx_gw={},'
+                #                   'interferer_gw_distance={:.3f},'
+                #                   'interferer_propagation_loss={:.3f},'
+                #                   'overlap_duration={},'
+                #                   'interferer_power_dbm={:.3f},'
+                #                   'interferer_power_watt={},'
+                #                   'interference_energy={}'.format(
+                #                 interferer_event.source,
+                #                 rx_gw.id,
+                #                 interferer_to_gw_distance,
+                #                 interferer_propagation_loss,
+                #                 overlap_duration,
+                #                 interferer_power_dbm,
+                #                 interferer_power_watt,
+                #                 interference_energy))
+
+
 
             # If packet is not interfered or under sensitivity, then transmitted
             if event.status == PacketStatus.pending:
@@ -153,7 +186,8 @@ class Simulation:
                 sf = PacketSf.get_random()
             else:
                 sf = self.sf
-            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=sf))
+            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize,
+                                                        simulation_duration=self.simulationDuration, sf=sf))
 
         # Collect statistics
         successfulDataSize = 0
