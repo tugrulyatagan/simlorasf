@@ -38,7 +38,7 @@ class SimulationResult:
         res += ' Successful packet number: {}\n'.format(self.successfulPacket)
         res += ' Under sensitivity packet number: {}\n'.format(self.underSensitivityPacket)
         res += ' Interference packet number: {}\n'.format(self.interferencePacket)
-        res += ' PDR: {} %\n'.format(self.pdr)
+        res += ' PDR: {:.3f} %\n'.format(self.pdr)
         res += ' Network throughput: {:.3f} bps\n'.format(self.throughput)
         res += ' Total TX energy consumption: {:.3f} Joule'.format(self.txEnergyConsumption)
         return res
@@ -63,7 +63,7 @@ class Simulation:
     def show_events(self):
         print('Events:')
         for event in self.eventQueue:
-            print('{}'.format(event))
+            print(' {}'.format(event))
 
     def show_results(self):
         print('Results:')

@@ -16,6 +16,7 @@
 # along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 import random
+import math
 from location import Location
 from node import Node
 from node import Gateway
@@ -37,9 +38,9 @@ class Topology:
     def show(self):
         print('Nodes:')
         for gateway in self.gateway_list:
-            print('{}'.format(gateway))
+            print(' {}'.format(gateway))
         for node in self.node_list:
-            print('{}'.format(node))
+            print(' {}'.format(node))
 
     def get_get_nearest_gw(self, location):
         nearestGateway = None
@@ -56,12 +57,31 @@ class Topology:
 
     @staticmethod
     def create_random_topology(node_number, radius, gw_number=1):
-        # TODO: multiple gw
         topology = Topology()
         topology.radius = radius
 
-        gateway = Gateway(location=Location(0, 0))
-        topology.gateway_list.append(gateway)
+        if gw_number == 1:
+            topology.gateway_list.append(Gateway(location=Location(0, 0)))
+        elif gw_number == 2:
+            a = radius/2.0
+            topology.gateway_list.append(Gateway(location=Location(a, 0)))
+            topology.gateway_list.append(Gateway(location=Location(-a, 0)))
+        elif gw_number == 3:
+            a = radius/(2.0 + math.sqrt(3))
+            b = math.sqrt(3) * a
+            c = 2 * a
+            topology.gateway_list.append(Gateway(location=Location(-b, -a)))
+            topology.gateway_list.append(Gateway(location=Location(b, -a)))
+            topology.gateway_list.append(Gateway(location=Location(0, c)))
+        elif gw_number == 4:
+            a = radius/(1.0 + math.sqrt(2))
+            topology.gateway_list.append(Gateway(location=Location(a, a)))
+            topology.gateway_list.append(Gateway(location=Location(a, -a)))
+            topology.gateway_list.append(Gateway(location=Location(-a, a)))
+            topology.gateway_list.append(Gateway(location=Location(-a, -a)))
+        else:
+            print('Unsupported gateway number')
+            return None
 
         while len(topology.node_list) < node_number:
             x = random.randint(-radius, radius)

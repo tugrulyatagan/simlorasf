@@ -17,7 +17,7 @@
 
 import math
 import random
-from enum import Enum
+import enum
 
 
 class PacketStatus:
@@ -27,7 +27,7 @@ class PacketStatus:
     under_sensitivity = 3
 
 
-class PacketSf(Enum):
+class PacketSf(enum.Enum):
     random = 0
     lowest = 1
     sf7 = 7
@@ -39,7 +39,7 @@ class PacketSf(Enum):
 
     @staticmethod
     def get_random():
-        return random.randint(7, 12)
+        return PacketSf(random.randint(7, 12))
 
 
 class Packet:

@@ -26,13 +26,16 @@ TOPOLOGY_RADIUS = 10000  # meters
 SIMULATION_DURATION = 3600  # seconds
 PACKET_RATE = 0.005  # per second
 PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
+NODE_NUMBER = 10
+GW_NUMBER = 4
+SF = PacketSf.lowest
 random.seed(42)  # for now seed is constant
 
 
-topology = Topology.create_random_topology(node_number=10, radius=TOPOLOGY_RADIUS)
+topology = Topology.create_random_topology(node_number=NODE_NUMBER, radius=TOPOLOGY_RADIUS, gw_number=GW_NUMBER)
 topology.show()
 
-simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.lowest)
+simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=SF)
 simulation.run()
 simulation.show_events()
 simulation.show_results()
