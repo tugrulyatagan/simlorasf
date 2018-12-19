@@ -16,8 +16,8 @@
 # along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 import math
+import random
 from enum import Enum
-from location import Location
 
 
 class PacketStatus:
@@ -37,6 +37,10 @@ class PacketSf(Enum):
     sf11 = 11
     sf12 = 12
 
+    @staticmethod
+    def get_random():
+        return random.randint(7, 12)
+
 
 class Packet:
     def __init__(self, time, sf, source, size, destination=0):
@@ -50,13 +54,14 @@ class Packet:
         # https://lora-alliance.org/sites/default/files/2018-04/lorawantm_regional_parameters_v1.1rb_-_final.pdf
         self.frequency = 868.1  # TODO
         self.bandwidth = 125  # TODO
-        self.erp = 14  # TODO Europe ISM g1.1. g1.2 Max ERP
+        self.tx_power = 14  # dBm TODO Europe ISM g1.1. g1.2 Max ERP
+        self.tx_energy = Packet.calculate_tx_energy_consumption(tx_power_dbm=self.tx_power, duration=self.duration)
 
     def __lt__(self, other):
         return self.time < other.time
 
     def __repr__(self):
-        return '(t={:.3f},src={},dst={},sf={},bw={},dur={:.3f},erp={},stat={})'.format(self.time, self.source, self.destination, self.sf.value, self.bandwidth, self.duration, self.erp, self.status)
+        return '(t={:.3f},src={},dst={},sf={},bw={},dur={:.3f},p={},e={:.4f},stat={})'.format(self.time, self.source, self.destination, self.sf.value, self.bandwidth, self.duration, self.tx_power, self.tx_energy, self.status)
 
     @staticmethod
     def calculate_transmission_duration(sf, size):
@@ -120,3 +125,12 @@ class Packet:
             return PacketSf.sf11
         else:
             return PacketSf.sf12
+
+    @staticmethod
+    def calculate_tx_energy_consumption(tx_power_dbm, duration):
+        if tx_power_dbm == 14:
+            # Pre calculated value for commonly used tx_power_dbm
+            tx_power_watt = 0.025118864315095794
+        else:
+            tx_power_watt = (10 ** (tx_power_dbm/10)) / 1000.0
+        return tx_power_watt * duration

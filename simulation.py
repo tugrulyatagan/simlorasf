@@ -30,7 +30,18 @@ class SimulationResult:
         self.underSensitivityPacket = 0
         self.interferencePacket = 0
         self.pdr = 0
-        # TODO: add total throughput
+        self.throughput = 0
+        self.txEnergyConsumption = 0
+
+    def __repr__(self):
+        res  = ' Total packet number: {}\n'.format(self.totalPacket)
+        res += ' Successful packet number: {}\n'.format(self.successfulPacket)
+        res += ' Under sensitivity packet number: {}\n'.format(self.underSensitivityPacket)
+        res += ' Interference packet number: {}\n'.format(self.interferencePacket)
+        res += ' PDR: {}%\n'.format(self.pdr)
+        res += ' Network throughput: {:.3f} bps\n'.format(self.throughput)
+        res += ' Total TX energy consumption: {:.3f} J'.format(self.txEnergyConsumption)
+        return res
 
 
 class Simulation:
@@ -50,16 +61,13 @@ class Simulation:
             bisect.insort_left(self.eventQueue, packet)
 
     def show_events(self):
+        print('Events:')
         for event in self.eventQueue:
             print('{}'.format(event))
 
     def show_results(self):
         print('Results:')
-        print(' Total packet number: {}'.format(self.simulationResult.totalPacket))
-        print(' Successful packet number: {}'.format(self.simulationResult.successfulPacket))
-        print(' Under sensitivity packet number: {}'.format(self.simulationResult.underSensitivityPacket))
-        print(' Interference packet number: {}'.format(self.simulationResult.interferencePacket))
-        print(' PDR: {}'.format(self.simulationResult.pdr))
+        print('{}'.format(self.simulationResult))
 
     def write_events_to_file(self, file_name):
         with open(file_name, 'w') as file:
@@ -71,6 +79,8 @@ class Simulation:
         for tx_node in self.topology.node_list:
             if self.sf == PacketSf.lowest:
                 sf = tx_node.lowestSf
+            elif self.sf == PacketSf.random:
+                sf = PacketSf.get_random()
             else:
                 sf = self.sf
             self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=sf))
@@ -84,8 +94,8 @@ class Simulation:
                 distance_to_gw = Location.get_distance(tx_node.location, gw.location)
                 rx_sensitivity = Packet.get_receive_sensitivity(event.sf)
                 propagation_loss = Packet.calculate_propagation_loss(distance_to_gw)
-                if event.erp - propagation_loss < rx_sensitivity:
-                    # print('Under sensitivity {} - {} < {} for {} at gw {}'.format(event.erp, propagation_loss, rx_sensitivity, event, gw.id))
+                if event.tx_power - propagation_loss < rx_sensitivity:
+                    # print('Under sensitivity {} - {} < {} for {} at gw {}'.format(event.tx_power, propagation_loss, rx_sensitivity, event, gw.id))
                     pass
                 else:
                     rx_gw_list.append(gw)
@@ -113,18 +123,24 @@ class Simulation:
             #                 # print('{} is interfered by {}'.format(next_event, event))
             #                 next_event.status = PacketStatus.interfered
 
+            # If packet is not interfered or under sensitivity, then transmitted
             if event.status == PacketStatus.pending:
                 event.status = PacketStatus.transmitted
 
             # Schedule next event for this node
             if self.sf == PacketSf.lowest:
                 sf = tx_node.lowestSf
+            elif self.sf == PacketSf.random:
+                sf = PacketSf.get_random()
             else:
                 sf = self.sf
             self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=sf))
 
         # Collect statistics
+        successfulDataSize = 0
+        successfulDataDuration = 0
         for event in self.eventQueue:
+            self.simulationResult.txEnergyConsumption += event.tx_energy
             self.simulationResult.totalPacket += 1
             if event.status == PacketStatus.under_sensitivity:
                 self.simulationResult.underSensitivityPacket += 1
@@ -132,6 +148,8 @@ class Simulation:
                 self.simulationResult.interferencePacket += 1
             elif event.status == PacketStatus.transmitted:
                 self.simulationResult.successfulPacket += 1
-        self.simulationResult.pdr = self.simulationResult.successfulPacket / self.simulationResult.totalPacket
-
+                successfulDataSize += event.size
+                successfulDataDuration += event.duration
+        self.simulationResult.pdr = 100 * float(self.simulationResult.successfulPacket) / self.simulationResult.totalPacket
+        self.simulationResult.throughput = 8 * float(successfulDataSize) / successfulDataDuration
         return self.simulationResult
