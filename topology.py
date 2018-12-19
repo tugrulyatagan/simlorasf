@@ -26,19 +26,13 @@ class Topology:
     def __init__(self):
         self.gateway_list = []
         self.node_list = []
+        self.radius = 0
 
     def get_node(self, id):
         return self.node_list[id - len(self.gateway_list) - 1]
 
     def get_gateway(self, id):
         return self.gateway_list[id - 1]
-
-    def write_to_file(self, file_name):
-        with open(file_name, 'w') as file:
-            for gateway in self.gateway_list:
-                file.write('{}\n'.format(gateway))
-            for node in self.node_list:
-                file.write('{}\n'.format(node))
 
     def show(self):
         print('Nodes:')
@@ -64,6 +58,7 @@ class Topology:
     def create_random_topology(node_number, radius, gw_number=1):
         # TODO: multiple gw
         topology = Topology()
+        topology.radius = radius
 
         gateway = Gateway(location=Location(0, 0))
         topology.gateway_list.append(gateway)

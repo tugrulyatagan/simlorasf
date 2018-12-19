@@ -38,9 +38,9 @@ class SimulationResult:
         res += ' Successful packet number: {}\n'.format(self.successfulPacket)
         res += ' Under sensitivity packet number: {}\n'.format(self.underSensitivityPacket)
         res += ' Interference packet number: {}\n'.format(self.interferencePacket)
-        res += ' PDR: {}%\n'.format(self.pdr)
+        res += ' PDR: {} %\n'.format(self.pdr)
         res += ' Network throughput: {:.3f} bps\n'.format(self.throughput)
-        res += ' Total TX energy consumption: {:.3f} J'.format(self.txEnergyConsumption)
+        res += ' Total TX energy consumption: {:.3f} Joule'.format(self.txEnergyConsumption)
         return res
 
 
@@ -69,10 +69,29 @@ class Simulation:
         print('Results:')
         print('{}'.format(self.simulationResult))
 
-    def write_events_to_file(self, file_name):
+    def write_to_file(self, file_name):
         with open(file_name, 'w') as file:
+            file.write('Parameters:\n')
+            file.write('Packet rate: {} packet per second\n'.format(self.packetRate))
+            file.write('Packet size: {} bytes\n'.format(self.packetSize))
+            file.write('Simulation duration: {} seconds\n'.format(self.simulationDuration))
+            file.write('SF: {}\n'.format(self.sf))
+            file.write('Node number: {}\n'.format(len(self.topology.node_list)))
+            file.write('GW number: {}\n'.format(len(self.topology.gateway_list)))
+            file.write('Radius: {} meters\n'.format(self.topology.radius))
+
+            file.write('\nNodes:\n')
+            for gateway in self.topology.gateway_list:
+                file.write('{}\n'.format(gateway))
+            for node in self.topology.node_list:
+                file.write('{}\n'.format(node))
+
+            file.write('\nEvents:\n')
             for event in self.eventQueue:
                 file.write('{}\n'.format(event))
+
+            file.write('\nResults:\n')
+            file.write('{}\n'.format(self.simulationResult))
 
     def run(self):
         # Schedule initial node transmissions
