@@ -20,6 +20,15 @@ import random
 import enum
 
 
+collision_snir = [
+    [6, -16, -18, -19, -19, -20],
+    [-24, 6, -20, -22, -22, -22],
+    [-27, -27, 6, -23, -25, -25],
+    [-30, -30, -30, 6, -26, -28],
+    [-33, -33, -33, -33, 6, -29],
+    [-36, -36, -36, -36, -36, 6],
+]
+
 class PacketStatus:
     pending = 0
     transmitted = 1
@@ -54,14 +63,14 @@ class Packet:
         # https://lora-alliance.org/sites/default/files/2018-04/lorawantm_regional_parameters_v1.1rb_-_final.pdf
         self.frequency = 868.1  # TODO
         self.bandwidth = 125  # TODO
-        self.tx_power = 14  # dBm TODO Europe ISM g1.1. g1.2 Max ERP
-        self.tx_energy = Packet.calculate_tx_energy_consumption(tx_power_dbm=self.tx_power, duration=self.duration)
+        self.tx_power_dbm = 14  # dBm TODO Europe ISM g1.1. g1.2 Max ERP
+        self.tx_energy_j = Packet.calculate_energy(power_dbm=self.tx_power_dbm, duration=self.duration)
 
     def __lt__(self, other):
         return self.time < other.time
 
     def __repr__(self):
-        return '(t={:.3f},src={},dst={},sf={},bw={},dur={:.3f},p={},e={:.4f},stat={})'.format(self.time, self.source, self.destination, self.sf.value, self.bandwidth, self.duration, self.tx_power, self.tx_energy, self.status)
+        return '(t={:.3f},src={},dst={},sf={},bw={},dur={:.3f},p={},e={:.4f},stat={})'.format(self.time, self.source, self.destination, self.sf.value, self.bandwidth, self.duration, self.tx_power_dbm, self.tx_energy_j, self.status)
 
     @staticmethod
     def calculate_transmission_duration(sf, size):
@@ -127,8 +136,8 @@ class Packet:
             return PacketSf.sf12
 
     @staticmethod
-    def calculate_tx_energy_consumption(tx_power_dbm, duration):
-        return Packet.dbm_to_watt(tx_power_dbm) * duration
+    def calculate_energy(power_dbm, duration):
+        return Packet.dbm_to_watt(power_dbm) * duration
 
     @staticmethod
     def dbm_to_watt(dbm):

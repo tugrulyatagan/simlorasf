@@ -26,7 +26,7 @@ TOPOLOGY_RADIUS = 10000  # meters
 SIMULATION_DURATION = 3600  # seconds
 PACKET_RATE = 0.005  # per second
 PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
-NODE_NUMBER = 20
+NODE_NUMBER = 50
 GW_NUMBER = 1
 SF = PacketSf.lowest
 random.seed(42)  # for now seed is constant

@@ -39,7 +39,7 @@ class Node:
         if len(self.txList) == 0:
             next_time = random.expovariate(packet_rate)
         else:
-            next_time = self.txList[-1].time + random.expovariate(packet_rate)
+            next_time = self.txList[-1].time + self.txList[-1].duration + random.expovariate(packet_rate)
 
         if next_time > simulation_duration:
             return None
