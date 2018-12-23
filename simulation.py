@@ -125,7 +125,7 @@ class Simulation:
 
             if len(rx_gw_list) == 0:
                 # No gateway received the packet
-                # print ('lost due to under sensitivity {}'.format(event))
+                # print('lost due to under sensitivity {}'.format(event))
                 event.status = PacketStatus.under_sensitivity
             else:
                 # Check overlapping events
@@ -209,7 +209,7 @@ class Simulation:
                                     rx_gw_list[rx_gw_index] = None
 
                 if all(rx_gw is None for rx_gw in rx_gw_list):
-                    # print ('lost due to interference {}'.format(event))
+                    # print('lost due to interference {}'.format(event))
                     event.status = PacketStatus.interfered
 
             # If packet is not interfered or under sensitivity, then transmitted
@@ -229,19 +229,19 @@ class Simulation:
                                                         simulation_duration=self.simulationDuration, sf=sf))
 
         # Collect statistics
-        successfulDataSize = 0
-        successfulDataDuration = 0
+        cumulativeSuccessfulDataSize = 0
+        cumulativeDataDuration = 0
         for event in self.eventQueue:
             self.simulationResult.txEnergyConsumption += event.tx_energy_j
             self.simulationResult.totalPacket += 1
+            cumulativeDataDuration += event.duration
             if event.status == PacketStatus.under_sensitivity:
                 self.simulationResult.underSensitivityPacket += 1
             elif event.status == PacketStatus.interfered:
                 self.simulationResult.interferencePacket += 1
             elif event.status == PacketStatus.transmitted:
                 self.simulationResult.successfulPacket += 1
-                successfulDataSize += event.size
-                successfulDataDuration += event.duration
+                cumulativeSuccessfulDataSize += event.size
         self.simulationResult.pdr = 100 * float(self.simulationResult.successfulPacket) / self.simulationResult.totalPacket
-        self.simulationResult.throughput = 8 * float(successfulDataSize) / successfulDataDuration
+        self.simulationResult.throughput = 8 * float(cumulativeSuccessfulDataSize) / cumulativeDataDuration
         return self.simulationResult
