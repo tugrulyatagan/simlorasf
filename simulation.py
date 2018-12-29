@@ -17,6 +17,7 @@
 
 import bisect
 import math
+from sklearn.model_selection import train_test_split
 from packet import PacketStatus
 from packet import PacketSf
 from packet import collision_snir
@@ -47,7 +48,7 @@ class SimulationResult:
 
 
 class Simulation:
-    def __init__(self, topology, packet_rate, packet_size, simulation_duration, sf):
+    def __init__(self, topology, packet_rate, packet_size, simulation_duration, sf, sfPredictor=None):
         self.eventQueue = []
         self.topology = topology
         self.currentTime = 0
@@ -56,6 +57,7 @@ class Simulation:
         self.simulationDuration = simulation_duration
         self.simulationResult = SimulationResult()
         self.sf = sf
+        self.sfPredictor = sfPredictor
         Node.idCounter = 0
 
     def add_to_event_queue(self, packet):
@@ -70,6 +72,15 @@ class Simulation:
     def show_results(self):
         print('Results:')
         print('{}'.format(self.simulationResult))
+
+    def get_training_data(self, test_size=0.2):
+        X = []
+        y = []
+        for event in self.eventQueue:
+            tx_node = self.topology.get_node(event.source)
+            X.append([tx_node.location.x, tx_node.location.y, event.sf.value])
+            y.append(event.status)
+        return train_test_split(X, y, test_size=test_size)
 
     def write_to_file(self, file_name):
         with open(file_name, 'w') as file:
@@ -95,15 +106,38 @@ class Simulation:
             file.write('\nResults:\n')
             file.write('{}\n'.format(self.simulationResult))
 
+            # for event in self.eventQueue:
+            #     tx_node = self.topology.get_node(event.source)
+            #     file.write('{},{},{},{}\n'.format(tx_node.location.x, tx_node.location.x, event.sf.value, event.status))
+
+    def __get_sf(self, tx_node):
+        if self.sf == PacketSf.lowest:
+            return tx_node.lowestSf
+        elif self.sf == PacketSf.predictor:
+            # Xnew = [[tx_node.location.x, tx_node.location.y, tx_node.lowestSf.value]]
+            # ynew = self.sfPredictor(Xnew)[0]
+            # if ynew == PacketStatus.interfered and tx_node.lowestSf.value < 12:
+            #     return PacketSf(tx_node.lowestSf.value + 1)
+            # else:
+            #     return tx_node.lowestSf
+            for sf_pred in range(tx_node.lowestSf.value, 12+1):
+                Xnew = [[tx_node.location.x, tx_node.location.y, sf_pred]]
+                ynew = self.sfPredictor(Xnew)[0]
+                # print('sf_pred={},tx_node.lowestSf={},ynew={}'.format(sf_pred, tx_node.lowestSf, ynew))
+                if ynew == PacketStatus.transmitted:
+                    return PacketSf(sf_pred)
+            # print("Suitable SF not found")
+            return tx_node.lowestSf
+        elif self.sf == PacketSf.random:
+            return PacketSf.get_random()
+        else:
+            return self.sf
+
     def run(self):
         # Schedule initial node transmissions
         for tx_node in self.topology.node_list:
-            if self.sf == PacketSf.lowest:
-                sf = tx_node.lowestSf
-            elif self.sf == PacketSf.random:
-                sf = PacketSf.get_random()
-            else:
-                sf = self.sf
+            tx_node.txList = []
+            sf = self.__get_sf(tx_node)
             self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize,
                                                         simulation_duration=self.simulationDuration, sf=sf))
 
@@ -219,12 +253,7 @@ class Simulation:
             # print('Event simulated {}'.format(event))
 
             # Schedule next event for this node
-            if self.sf == PacketSf.lowest:
-                sf = tx_node.lowestSf
-            elif self.sf == PacketSf.random:
-                sf = PacketSf.get_random()
-            else:
-                sf = self.sf
+            sf = self.__get_sf(tx_node)
             self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize,
                                                         simulation_duration=self.simulationDuration, sf=sf))
 

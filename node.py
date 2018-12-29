@@ -27,6 +27,7 @@ class Node:
         self.id = Node.idCounter
         self.txList = []
         self.lowestSf = None
+        self.predictedSf = None
 
     def __repr__(self):
         if self.__class__ == Gateway:
