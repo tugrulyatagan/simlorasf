@@ -111,9 +111,9 @@ class Simulation:
             #     file.write('{},{},{},{}\n'.format(tx_node.location.x, tx_node.location.x, event.sf.value, event.status))
 
     def __get_sf(self, tx_node):
-        if self.sf == PacketSf.lowest:
+        if self.sf == PacketSf.SF_Lowest:
             return tx_node.lowestSf
-        elif self.sf == PacketSf.predictor:
+        elif self.sf == PacketSf.SF_Predictor:
             # Xnew = [[tx_node.location.x, tx_node.location.y, tx_node.lowestSf.value]]
             # ynew = self.sfPredictor(Xnew)[0]
             # if ynew == PacketStatus.interfered and tx_node.lowestSf.value < 12:
@@ -128,7 +128,7 @@ class Simulation:
                     return PacketSf(sf_pred)
             # print("Suitable SF not found")
             return tx_node.lowestSf
-        elif self.sf == PacketSf.random:
+        elif self.sf == PacketSf.SF_Random:
             return PacketSf.get_random()
         else:
             return self.sf

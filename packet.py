@@ -37,15 +37,15 @@ class PacketStatus:
 
 
 class PacketSf(enum.Enum):
-    random = 0
-    lowest = 1
-    predictor = 2
-    sf7 = 7
-    sf8 = 8
-    sf9 = 9
-    sf10 = 10
-    sf11 = 11
-    sf12 = 12
+    SF_Random = 0
+    SF_Lowest = 1
+    SF_Predictor = 2
+    SF_7 = 7
+    SF_8 = 8
+    SF_9 = 9
+    SF_10 = 10
+    SF_11 = 11
+    SF_12 = 12
 
     @staticmethod
     def get_random():
@@ -78,17 +78,17 @@ class Packet:
         # https://docs.exploratory.engineering/lora/dr_sf/
         # https://lora-alliance.org/sites/default/files/2018-04/lorawantm_regional_parameters_v1.1rb_-_final.pdf
         # TODO, consider BW
-        if sf == PacketSf.sf7:
+        if sf == PacketSf.SF_7:
             return (size * 8) / 5470.0
-        elif sf == PacketSf.sf8:
+        elif sf == PacketSf.SF_8:
             return (size * 8) / 3125.0
-        elif sf == PacketSf.sf9:
+        elif sf == PacketSf.SF_9:
             return (size * 8) / 1760.0
-        elif sf == PacketSf.sf10:
+        elif sf == PacketSf.SF_10:
             return (size * 8) / 980.0
-        elif sf == PacketSf.sf11:
+        elif sf == PacketSf.SF_11:
             return (size * 8) / 440.0
-        elif sf == PacketSf.sf12:
+        elif sf == PacketSf.SF_12:
             return (size * 8) / 250.0
         else:
             raise Exception()
@@ -98,17 +98,17 @@ class Packet:
         # https://www.semtech.com/uploads/documents/DS_SX1276-7-8-9_W_APP_V5.pdf
         # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038744/
         # TODO
-        if sf == PacketSf.sf7:
+        if sf == PacketSf.SF_7:
             return -130
-        elif sf == PacketSf.sf8:
+        elif sf == PacketSf.SF_8:
             return -132.5
-        elif sf == PacketSf.sf9:
+        elif sf == PacketSf.SF_9:
             return -135
-        elif sf == PacketSf.sf10:
+        elif sf == PacketSf.SF_10:
             return -137.5
-        elif sf == PacketSf.sf11:
+        elif sf == PacketSf.SF_11:
             return -140
-        elif sf == PacketSf.sf12:
+        elif sf == PacketSf.SF_12:
             return -142.5
         else:
             raise Exception()
@@ -124,17 +124,17 @@ class Packet:
         # TODO erp
         propagation_loss = Packet.calculate_propagation_loss(distance)
         if erp - propagation_loss > -130:
-            return PacketSf.sf7
+            return PacketSf.SF_7
         elif erp - propagation_loss > -132.5:
-            return PacketSf.sf8
+            return PacketSf.SF_8
         elif erp - propagation_loss > -135:
-            return PacketSf.sf9
+            return PacketSf.SF_9
         elif erp - propagation_loss > -137.5:
-            return PacketSf.sf10
+            return PacketSf.SF_10
         elif erp - propagation_loss > -140:
-            return PacketSf.sf11
+            return PacketSf.SF_11
         else:
-            return PacketSf.sf12
+            return PacketSf.SF_12
 
     @staticmethod
     def calculate_energy(power_dbm, duration):
