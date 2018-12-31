@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2018  Tugrul Yatagan <tugrulyatagan@gmail.com>
+# Copyright (c) 2019  Tugrul Yatagan <tugrulyatagan@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 as
@@ -21,12 +21,12 @@ import enum
 
 
 collision_snir = [
-    [6, -16, -18, -19, -19, -20],
-    [-24, 6, -20, -22, -22, -22],
-    [-27, -27, 6, -23, -25, -25],
-    [-30, -30, -30, 6, -26, -28],
-    [-33, -33, -33, -33, 6, -29],
-    [-36, -36, -36, -36, -36, 6],
+    [  6, -16, -18, -19, -19, -20],
+    [-24,   6, -20, -22, -22, -22],
+    [-27, -27,   6, -23, -25, -25],
+    [-30, -30, -30,   6, -26, -28],
+    [-33, -33, -33, -33,   6, -29],
+    [-36, -36, -36, -36, -36,   6],
 ]
 
 class PacketStatus:
@@ -62,7 +62,6 @@ class Packet:
         self.size = size
         self.duration = Packet.calculate_transmission_duration(sf, size)
         # https://lora-alliance.org/sites/default/files/2018-04/lorawantm_regional_parameters_v1.1rb_-_final.pdf
-        self.frequency = 868.1  # TODO
         self.bandwidth = 125  # TODO
         self.tx_power_dbm = 14  # dBm TODO Europe ISM g1.1. g1.2 Max ERP
         self.tx_energy_j = Packet.calculate_energy(power_dbm=self.tx_power_dbm, duration=self.duration)
@@ -123,15 +122,15 @@ class Packet:
     def get_lowest_sf(distance, erp=14):
         # TODO erp
         propagation_loss = Packet.calculate_propagation_loss(distance)
-        if erp - propagation_loss > -130:
+        if erp - propagation_loss > Packet.get_receive_sensitivity(PacketSf.SF_7):
             return PacketSf.SF_7
-        elif erp - propagation_loss > -132.5:
+        elif erp - propagation_loss > Packet.get_receive_sensitivity(PacketSf.SF_8):
             return PacketSf.SF_8
-        elif erp - propagation_loss > -135:
+        elif erp - propagation_loss > Packet.get_receive_sensitivity(PacketSf.SF_9):
             return PacketSf.SF_9
-        elif erp - propagation_loss > -137.5:
+        elif erp - propagation_loss > Packet.get_receive_sensitivity(PacketSf.SF_10):
             return PacketSf.SF_10
-        elif erp - propagation_loss > -140:
+        elif erp - propagation_loss > Packet.get_receive_sensitivity(PacketSf.SF_11):
             return PacketSf.SF_11
         else:
             return PacketSf.SF_12
