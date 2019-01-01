@@ -61,9 +61,8 @@ class Packet:
         self.status = PacketStatus.pending
         self.size = size
         self.duration = Packet.calculate_transmission_duration(sf, size)
-        # https://lora-alliance.org/sites/default/files/2018-04/lorawantm_regional_parameters_v1.1rb_-_final.pdf
         self.bandwidth = 125  # TODO
-        self.tx_power_dbm = 14  # dBm TODO Europe ISM g1.1. g1.2 Max ERP
+        self.tx_power_dbm = 14  # dBm TODO
         self.tx_energy_j = Packet.calculate_energy(power_dbm=self.tx_power_dbm, duration=self.duration)
 
     def __lt__(self, other):
@@ -74,8 +73,6 @@ class Packet:
 
     @staticmethod
     def calculate_transmission_duration(sf, size):
-        # https://docs.exploratory.engineering/lora/dr_sf/
-        # https://lora-alliance.org/sites/default/files/2018-04/lorawantm_regional_parameters_v1.1rb_-_final.pdf
         # TODO, consider BW
         if sf == PacketSf.SF_7:
             return (size * 8) / 5470.0
@@ -95,8 +92,6 @@ class Packet:
     @staticmethod
     def get_receive_sensitivity(sf):
         # https://www.semtech.com/uploads/documents/DS_SX1276-7-8-9_W_APP_V5.pdf
-        # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038744/
-        # TODO
         if sf == PacketSf.SF_7:
             return -130
         elif sf == PacketSf.SF_8:
@@ -115,7 +110,6 @@ class Packet:
     @staticmethod
     def calculate_propagation_loss(distance):
         # Assuming f = 868 MHz and h = 15 m
-        # TODO
         return 120.5 + 37.6 * math.log10(distance/1000)
 
     @staticmethod
