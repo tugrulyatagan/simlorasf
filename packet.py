@@ -39,7 +39,7 @@ class PacketStatus:
 class PacketSf(enum.Enum):
     SF_Random = 0
     SF_Lowest = 1
-    SF_Predictor = 2
+    SF_Smart = 2
     SF_7 = 7
     SF_8 = 8
     SF_9 = 9

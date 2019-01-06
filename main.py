@@ -28,8 +28,8 @@ from packet import PacketSf
 
 
 # All units are SI base units
-TOPOLOGY_RADIUS = 3000  # meters
-GW_NUMBER = 1
+TOPOLOGY_RADIUS = 5000  # meters
+GW_NUMBER = 3
 SIMULATION_DURATION = 3600  # seconds
 PACKET_RATE = 0.01  # per second
 PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
@@ -90,7 +90,7 @@ for node_number in node_number_list:
         classifier.fit(X_train, y_train)
         y_pred = classifier.predict(X_test)
 
-        simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Predictor, sfPredictor=classifier.predict)
+        simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=classifier.predict)
         simulation_result = simulation.run()
         predictor_pdr_averaging_sum += simulation_result.pdr
 
@@ -102,8 +102,8 @@ for node_number in node_number_list:
     predictor_pdr_list.append(float(predictor_pdr_averaging_sum)/AVERAGING)
     lowest_pdr_list.append(float(lowest_pdr_averaging_sum)/AVERAGING)
 
-plt.plot(node_number_list, random_pdr_list, label=PacketSf.SF_Random.name)
-plt.plot(node_number_list, predictor_pdr_list, label=PacketSf.SF_Predictor.name)
+# plt.plot(node_number_list, random_pdr_list, label=PacketSf.SF_Random.name)
+plt.plot(node_number_list, predictor_pdr_list, label=PacketSf.SF_Smart.name)
 plt.plot(node_number_list, lowest_pdr_list, label=PacketSf.SF_Lowest.name)
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
@@ -160,7 +160,6 @@ for gw_number in gw_number_list:
             pdr_averaging_sum += simulation_result.pdr
         n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
     plt.plot(node_number_list, n_pdr_list, label=gw_number)
-plt.ylim(bottom=0)
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
@@ -189,7 +188,6 @@ for radius in radius_list:
         n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
     plt.plot(node_number_list, n_pdr_list, label=radius)
 
-plt.ylim(bottom=0)
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')

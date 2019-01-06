@@ -113,7 +113,7 @@ class Simulation:
     def __get_sf(self, tx_node):
         if self.sf == PacketSf.SF_Lowest:
             return tx_node.lowestSf
-        elif self.sf == PacketSf.SF_Predictor:
+        elif self.sf == PacketSf.SF_Smart:
             # Xnew = [[tx_node.location.x, tx_node.location.y, tx_node.lowestSf.value]]
             # ynew = self.sfPredictor(Xnew)[0]
             # if ynew == PacketStatus.interfered and tx_node.lowestSf.value < 12:
