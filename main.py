@@ -21,11 +21,13 @@ from matplotlib import rcParams
 rcParams['font.family'] = 'serif'
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
+from sklearn import svm
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from topology import Topology
 from simulation import Simulation
 from packet import PacketSf
 
+random.seed(42)  # for now seed is constant
 
 # All units are SI base units
 TOPOLOGY_RADIUS = 5000  # meters
@@ -34,7 +36,6 @@ SIMULATION_DURATION = 3600  # seconds
 PACKET_RATE = 0.01  # per second
 PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
 AVERAGING = 5
-random.seed(42)  # for now seed is constant
 
 # NODE_NUMBER = 100
 #
@@ -47,17 +48,16 @@ random.seed(42)  # for now seed is constant
 # # simulation.write_to_file('output/sim.txt')
 #
 # X_train, X_test, y_train, y_test = simulation.get_training_data()
+#
+# # classifier = svm.SVC(class_weight='balanced', gamma='auto')
 # classifier = DecisionTreeClassifier(class_weight='balanced')
-# # classifier = DecisionTreeClassifier(criterion = "gini", random_state = 100,max_depth=3, min_samples_leaf=5)
-# # classifier = DecisionTreeClassifier(criterion = "entropy", random_state = 100, max_depth = 3, min_samples_leaf = 5)
-# # class_weight
 # classifier.fit(X_train, y_train)
 # y_pred = classifier.predict(X_test)
 # print(classification_report(y_test, y_pred))
 # print(confusion_matrix(y_test, y_pred, labels=[1, 2, 3]))
 # print ("Accuracy is {:.3f} %".format(accuracy_score(y_test,y_pred)*100))
 #
-# simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Predictor, sfPredictor=classifier.predict)
+# simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=classifier.predict)
 # simulation.run()
 # simulation.show_results()
 #
@@ -70,11 +70,13 @@ node_number_list = range(50, 1001, 50)
 
 plt.figure()
 random_pdr_list = []
-predictor_pdr_list = []
+prediction_dt_pdr_list = []
+prediction_svm_pdr_list = []
 lowest_pdr_list = []
 for node_number in node_number_list:
     random_pdr_averaging_sum = 0
-    predictor_pdr_averaging_sum = 0
+    prediction_dt_pdr_averaging_sum = 0
+    prediction_svm_pdr_averaging_sum = 0
     lowest_pdr_averaging_sum = 0
     sys.stdout.write('.')
     sys.stdout.flush()
@@ -85,25 +87,34 @@ for node_number in node_number_list:
         simulation_result = simulation.run()
         random_pdr_averaging_sum += simulation_result.pdr
 
-        X_train, X_test, y_train, y_test = simulation.get_training_data()
-        classifier = DecisionTreeClassifier(class_weight='balanced')
-        classifier.fit(X_train, y_train)
-        y_pred = classifier.predict(X_test)
+        X_train, X_test, y_train, y_test = simulation.get_training_data(test_size=0)
 
-        simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=classifier.predict)
+        DT_classifier = DecisionTreeClassifier(class_weight='balanced')
+        DT_classifier.fit(X_train, y_train)
+
+        SVM_classifier = svm.SVC(class_weight='balanced', gamma='auto')
+        SVM_classifier.fit(X_train, y_train)
+
+        simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=DT_classifier.predict)
         simulation_result = simulation.run()
-        predictor_pdr_averaging_sum += simulation_result.pdr
+        prediction_dt_pdr_averaging_sum += simulation_result.pdr
+
+        simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=SVM_classifier.predict)
+        simulation_result = simulation.run()
+        prediction_svm_pdr_averaging_sum += simulation_result.pdr
 
         simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
         simulation_result = simulation.run()
         lowest_pdr_averaging_sum += simulation_result.pdr
 
     random_pdr_list.append(float(random_pdr_averaging_sum)/AVERAGING)
-    predictor_pdr_list.append(float(predictor_pdr_averaging_sum)/AVERAGING)
+    prediction_dt_pdr_list.append(float(prediction_dt_pdr_averaging_sum) / AVERAGING)
+    prediction_svm_pdr_list.append(float(prediction_svm_pdr_averaging_sum) / AVERAGING)
     lowest_pdr_list.append(float(lowest_pdr_averaging_sum)/AVERAGING)
 
 # plt.plot(node_number_list, random_pdr_list, label=PacketSf.SF_Random.name)
-plt.plot(node_number_list, predictor_pdr_list, label=PacketSf.SF_Smart.name)
+plt.plot(node_number_list, prediction_dt_pdr_list, label='SF_Smart_DecisionTree')
+plt.plot(node_number_list, prediction_svm_pdr_list, label='SF_Smart_SVM')
 plt.plot(node_number_list, lowest_pdr_list, label=PacketSf.SF_Lowest.name)
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
@@ -112,7 +123,7 @@ plt.ylabel('PDR (%)')
 plt.grid(True)
 plt.legend(loc='upper right', fontsize='small', title="SF")
 plt.tight_layout()
-plt.savefig('output/predict_pdr_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, GW_NUMBER, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
+plt.savefig('output/prediction_pdr_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, GW_NUMBER, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
 
 plt.figure()
