@@ -29,6 +29,8 @@ collision_snir = [
     [-36, -36, -36, -36, -36,   6],
 ]
 
+systam_gain = 7  # total of system gains and system losses
+
 class PacketStatus:
     pending = 0
     transmitted = 1
@@ -93,17 +95,17 @@ class Packet:
     def get_receive_sensitivity(sf):
         # https://www.semtech.com/uploads/documents/DS_SX1276-7-8-9_W_APP_V5.pdf
         if sf == PacketSf.SF_7:
-            return -130
+            return -123 - systam_gain
         elif sf == PacketSf.SF_8:
-            return -132.5
+            return -126 - systam_gain
         elif sf == PacketSf.SF_9:
-            return -135
+            return -129 - systam_gain
         elif sf == PacketSf.SF_10:
-            return -137.5
+            return -132 - systam_gain
         elif sf == PacketSf.SF_11:
-            return -140
+            return -133 - systam_gain
         elif sf == PacketSf.SF_12:
-            return -142.5
+            return -136 - systam_gain
         else:
             raise Exception()
 

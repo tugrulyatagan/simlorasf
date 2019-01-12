@@ -30,8 +30,10 @@ from packet import PacketSf
 random.seed(42)  # for now seed is constant
 
 # All units are SI base units
-TOPOLOGY_RADIUS = 5000  # meters
-GW_NUMBER = 3
+TOPOLOGY_RADIUS = 3000  # meters
+GW_NUMBER = 1
+PRED_TOPOLOGY_RADIUS = 5000  # meters
+PRED_GW_NUMBER = 3
 SIMULATION_DURATION = 3600  # seconds
 PACKET_RATE = 0.01  # per second
 PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
@@ -66,6 +68,67 @@ AVERAGING = 5
 # simulation.show_results()
 
 
+for radius in [3000, 5000, 7000, 10000]:
+    for node_number in [100, 500, 1000]:
+        prediction_dt_acc_averaging_sum = 0
+        prediction_svm_acc_averaging_sum = 0
+        topology = Topology.create_random_topology(node_number=node_number, radius=radius, gw_number=PRED_GW_NUMBER)
+
+        for repeat in range(AVERAGING):
+            simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Random)
+            simulation_result = simulation.run()
+
+            X_train, X_test, y_train, y_test = simulation.get_training_data(test_size=0.2)
+
+            DT_classifier = DecisionTreeClassifier(class_weight='balanced')
+            DT_classifier.fit(X_train, y_train)
+            y_pred = DT_classifier.predict(X_test)
+            prediction_dt_acc_averaging_sum += accuracy_score(y_test, y_pred) * 100
+
+            SVM_classifier = svm.SVC(class_weight='balanced', gamma='auto')
+            SVM_classifier.fit(X_train, y_train)
+            y_pred = SVM_classifier.predict(X_test)
+            prediction_svm_acc_averaging_sum += accuracy_score(y_test, y_pred) * 100
+
+        print('node_number={}, radius={}'.format(node_number, radius))
+        print('accuracy S={}, D={}'.format(prediction_svm_acc_averaging_sum/AVERAGING, prediction_dt_acc_averaging_sum/AVERAGING))
+
+
+for radius in [3000, 5000, 7000, 10000]:
+    for node_number in [100, 500, 1000]:
+        prediction_dt_pdr_averaging_sum = 0
+        prediction_svm_pdr_averaging_sum = 0
+        lowest_pdr_averaging_sum = 0
+        topology = Topology.create_random_topology(node_number=node_number, radius=radius, gw_number=PRED_GW_NUMBER)
+
+        for repeat in range(AVERAGING):
+            simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Random)
+            simulation_result = simulation.run()
+
+            X_train, X_test, y_train, y_test = simulation.get_training_data(test_size=0)
+
+            DT_classifier = DecisionTreeClassifier(class_weight='balanced')
+            DT_classifier.fit(X_train, y_train)
+
+            SVM_classifier = svm.SVC(class_weight='balanced', gamma='auto')
+            SVM_classifier.fit(X_train, y_train)
+
+            simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=DT_classifier.predict)
+            simulation_result = simulation.run()
+            prediction_dt_pdr_averaging_sum += simulation_result.pdr
+
+            simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=SVM_classifier.predict)
+            simulation_result = simulation.run()
+            prediction_svm_pdr_averaging_sum += simulation_result.pdr
+
+            simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
+            simulation_result = simulation.run()
+            lowest_pdr_averaging_sum += simulation_result.pdr
+
+        print('node_number={}, radius={}'.format(node_number, radius))
+        print('pdr L={}, S={}, D={}'.format(lowest_pdr_averaging_sum/AVERAGING, prediction_svm_pdr_averaging_sum/AVERAGING, prediction_dt_pdr_averaging_sum/AVERAGING))
+
+
 node_number_list = range(50, 1001, 50)
 
 plt.figure()
@@ -80,7 +143,7 @@ for node_number in node_number_list:
     lowest_pdr_averaging_sum = 0
     sys.stdout.write('.')
     sys.stdout.flush()
-    topology = Topology.create_random_topology(node_number=node_number, radius=TOPOLOGY_RADIUS, gw_number=GW_NUMBER)
+    topology = Topology.create_random_topology(node_number=node_number, radius=PRED_TOPOLOGY_RADIUS, gw_number=PRED_GW_NUMBER)
 
     for repeat in range(AVERAGING):
         simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Random)
@@ -119,11 +182,11 @@ plt.plot(node_number_list, lowest_pdr_list, label=PacketSf.SF_Lowest.name)
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
-# plt.title('topology_radius={}, packet_rate={}, gw_number={}'.format(TOPOLOGY_RADIUS, PACKET_RATE, GW_NUMBER))
+# plt.title('topology_radius={}, packet_rate={}, gw_number={}'.format(PRED_TOPOLOGY_RADIUS, PACKET_RATE, PRED_GW_NUMBER))
 plt.grid(True)
 plt.legend(loc='upper right', fontsize='small', title="SF")
 plt.tight_layout()
-plt.savefig('output/prediction_pdr_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, GW_NUMBER, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
+plt.savefig('output/prediction_pdr_r{}_g{}_p{}_s{}.png'.format(PRED_TOPOLOGY_RADIUS, PRED_GW_NUMBER, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
 
 plt.figure()
