@@ -91,7 +91,7 @@ for radius in [3000, 5000, 7000, 10000]:
             prediction_svm_acc_averaging_sum += accuracy_score(y_test, y_pred) * 100
 
         print('node_number={}, radius={}'.format(node_number, radius))
-        print('accuracy S={}, D={}'.format(prediction_svm_acc_averaging_sum/AVERAGING, prediction_dt_acc_averaging_sum/AVERAGING))
+        print('accuracy S={:.1f}, D={:.1f}'.format(prediction_svm_acc_averaging_sum/AVERAGING, prediction_dt_acc_averaging_sum/AVERAGING))
 
 
 for radius in [3000, 5000, 7000, 10000]:
@@ -126,7 +126,7 @@ for radius in [3000, 5000, 7000, 10000]:
             lowest_pdr_averaging_sum += simulation_result.pdr
 
         print('node_number={}, radius={}'.format(node_number, radius))
-        print('pdr L={}, S={}, D={}'.format(lowest_pdr_averaging_sum/AVERAGING, prediction_svm_pdr_averaging_sum/AVERAGING, prediction_dt_pdr_averaging_sum/AVERAGING))
+        print('pdr L={:.1f}, S={:.1f}, D={:.1f}'.format(lowest_pdr_averaging_sum/AVERAGING, prediction_svm_pdr_averaging_sum/AVERAGING, prediction_dt_pdr_averaging_sum/AVERAGING))
 
 
 node_number_list = range(50, 1001, 50)
