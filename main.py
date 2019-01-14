@@ -176,7 +176,7 @@ for node_number in node_number_list:
     lowest_pdr_list.append(float(lowest_pdr_averaging_sum)/AVERAGING)
 
 # plt.plot(node_number_list, random_pdr_list, label=PacketSf.SF_Random.name)
-plt.plot(node_number_list, prediction_dt_pdr_list, label='SF_Smart_DecisionTree')
+plt.plot(node_number_list, prediction_dt_pdr_list, label='SF_Smart_DTC')
 plt.plot(node_number_list, prediction_svm_pdr_list, label='SF_Smart_SVM')
 plt.plot(node_number_list, lowest_pdr_list, label=PacketSf.SF_Lowest.name)
 plt.xlim([0, 1000])
