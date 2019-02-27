@@ -1,6 +1,8 @@
 # simlorafs
 LoRa simulator to study Spreading Factor (SF) orthogonality.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2579366.svg)](https://doi.org/10.5281/zenodo.2579366)
+
 ## Prerequisite
 Tool is implemented and tested for Python 3. 
 
