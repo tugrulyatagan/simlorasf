@@ -38,6 +38,7 @@ class PacketStatus:
     under_sensitivity = 3
 
 
+@enum.unique
 class PacketSf(enum.Enum):
     SF_Random = 0
     SF_Lowest = 1

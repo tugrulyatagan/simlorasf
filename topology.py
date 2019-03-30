@@ -17,6 +17,7 @@
 
 import random
 import math
+import logging
 from location import Location
 from node import Node
 from node import Gateway
@@ -56,34 +57,34 @@ class Topology:
         return nearestGateway, nearestDistance
 
     @staticmethod
-    def create_random_topology(node_number, radius, gw_number=1):
+    def create_random_topology(number_of_nodes, radius, number_of_gws=1):
         topology = Topology()
         topology.radius = radius
 
-        if gw_number == 1:
+        if number_of_gws == 1:
             topology.gateway_list.append(Gateway(location=Location(0, 0)))
-        elif gw_number == 2:
+        elif number_of_gws == 2:
             a = radius/2.0
             topology.gateway_list.append(Gateway(location=Location(a, 0)))
             topology.gateway_list.append(Gateway(location=Location(-a, 0)))
-        elif gw_number == 3:
+        elif number_of_gws == 3:
             a = radius/(2.0 + math.sqrt(3))
             b = math.sqrt(3) * a
             c = 2 * a
             topology.gateway_list.append(Gateway(location=Location(-b, -a)))
             topology.gateway_list.append(Gateway(location=Location(b, -a)))
             topology.gateway_list.append(Gateway(location=Location(0, c)))
-        elif gw_number == 4:
+        elif number_of_gws == 4:
             a = radius/(1.0 + math.sqrt(2))
             topology.gateway_list.append(Gateway(location=Location(a, a)))
             topology.gateway_list.append(Gateway(location=Location(a, -a)))
             topology.gateway_list.append(Gateway(location=Location(-a, a)))
             topology.gateway_list.append(Gateway(location=Location(-a, -a)))
         else:
-            print('Unsupported gateway number')
+            logging.error('Unsupported number of gateways')
             return None
 
-        while len(topology.node_list) < node_number:
+        while len(topology.node_list) < number_of_nodes:
             x = random.randint(-radius, radius)
             y = random.randint(-radius, radius)
             if (x ** 2 + y ** 2) > (radius ** 2):
