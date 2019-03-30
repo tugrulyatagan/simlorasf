@@ -18,8 +18,6 @@
 import random
 import logging
 import argparse
-from matplotlib import rcParams
-rcParams['font.family'] = 'serif'
 from sklearn.tree import DecisionTreeClassifier
 from sklearn import svm
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
