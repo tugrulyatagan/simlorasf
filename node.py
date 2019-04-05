@@ -47,8 +47,8 @@ class Node:
     def schedule_tx(self, packet_rate, packet_size, simulation_duration, sf):
         # Poisson interval
         if len(self.txList) == 0:
-            # initial transmissions are random
-            next_time = random.expovariate(packet_rate)
+            # initial transmissions are poisson
+            next_time = self.__generatePoissonInterval(packet_rate)
         else:
             if self.trafficType == TrafficType.Poisson:
                 next_interval = self.__generatePoissonInterval(packet_rate)

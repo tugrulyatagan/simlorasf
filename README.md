@@ -4,7 +4,7 @@ LoRa simulator to study Spreading Factor (SF) orthogonality.
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2579366.svg)](https://doi.org/10.5281/zenodo.2579366)
 
 ## Prerequisite
-Tool is implemented and tested with Python 3.x
+This tool is supposed to run with both Python 2.x and 3.x, but it is only verified with Python 3.x.
 
 Required Python Modules:
 * matplotlib
@@ -45,7 +45,7 @@ python3 main.py -s SF_Smart -c DTC
 
 Simulation duration in second:
 ```
-python3 main.py -d 36000
+python3 main.py -d 3600
 ```
 
 Packet rate in packet per second:
@@ -58,9 +58,14 @@ Packet size in byte:
 python3 main.py -z 80
 ```
 
+Proportions of different traffic generator type nodes:
+```
+python3 main.py -o 0.8 0.2
+```
+
 Random number generator seed:
 ```
-python3 main.py -s 42
+python3 main.py -e 42
 ```
 
 Events log path:
@@ -75,7 +80,7 @@ python3 main.py -v INFO
 
 Example:
 ```
-python3 main.py -r 7000 -g 3 -n 500 -s SF_Lowest -d 7200 -p 0.05 -z 65 -s 76 -l log.txt -v INFO
+python3 main.py -r 7000 -g 3 -n 300 -s SF_Lowest -d 3600 -p 0.03 -z 65 -o 0.8 0.2 -e 76 -l log.txt -v INFO
 ```
 
 Get figures and results in the paper:
