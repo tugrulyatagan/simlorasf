@@ -37,11 +37,12 @@ PRED_NUMBER_OF_GWS = 3
 SIMULATION_DURATION = 3600  # seconds
 PACKET_RATE = 0.01  # per second
 PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
+TRAFFIC_TYPE = (1, 0)  # poisson, periodic
 AVERAGING = 5
 
 # NUMBER_OF_NODES = 100
 #
-# topology = Topology.create_random_topology(node_number=NUMBER_OF_NODES, radius=TOPOLOGY_RADIUS, gw_number=NUMBER_OF_GW)
+# topology = Topology.create_random_topology(node_number=NUMBER_OF_NODES, radius=TOPOLOGY_RADIUS, gw_number=NUMBER_OF_GW, node_traffic_proportions=TRAFFIC_TYPE)
 # # topology.show()
 #
 # simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Random)
@@ -72,7 +73,7 @@ for radius in [3000, 5000, 7000, 10000]:
     for number_of_nodes in [100, 500, 1000]:
         prediction_dt_acc_averaging_sum = 0
         prediction_svm_acc_averaging_sum = 0
-        topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=radius, number_of_gws=PRED_NUMBER_OF_GWS)
+        topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=radius, number_of_gws=PRED_NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
 
         for repeat in range(AVERAGING):
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Random)
@@ -99,7 +100,7 @@ for radius in [3000, 5000, 7000, 10000]:
         prediction_dt_pdr_averaging_sum = 0
         prediction_svm_pdr_averaging_sum = 0
         lowest_pdr_averaging_sum = 0
-        topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=radius, number_of_gws=PRED_NUMBER_OF_GWS)
+        topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=radius, number_of_gws=PRED_NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
 
         for repeat in range(AVERAGING):
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Random)
@@ -143,7 +144,7 @@ for number_of_nodes in number_of_nodes_list:
     lowest_pdr_averaging_sum = 0
     sys.stdout.write('.')
     sys.stdout.flush()
-    topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=PRED_TOPOLOGY_RADIUS, number_of_gws=PRED_NUMBER_OF_GWS)
+    topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=PRED_TOPOLOGY_RADIUS, number_of_gws=PRED_NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
 
     for repeat in range(AVERAGING):
         simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Random)
@@ -174,7 +175,6 @@ for number_of_nodes in number_of_nodes_list:
     prediction_dt_pdr_list.append(float(prediction_dt_pdr_averaging_sum) / AVERAGING)
     prediction_svm_pdr_list.append(float(prediction_svm_pdr_averaging_sum) / AVERAGING)
     lowest_pdr_list.append(float(lowest_pdr_averaging_sum)/AVERAGING)
-
 plt.plot(number_of_nodes_list, random_pdr_list, label=PacketSf.SF_Random.name)
 plt.plot(number_of_nodes_list, prediction_dt_pdr_list, label='SF_Smart_DTC')
 plt.plot(number_of_nodes_list, prediction_svm_pdr_list, label='SF_Smart_SVM')
@@ -182,7 +182,6 @@ plt.plot(number_of_nodes_list, lowest_pdr_list, label=PacketSf.SF_Lowest.name)
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
-# plt.title('topology_radius={}, packet_rate={}, gw_number={}'.format(PRED_TOPOLOGY_RADIUS, PACKET_RATE, PRED_GW_NUMBER))
 plt.grid(True)
 plt.legend(loc='upper right', fontsize='small', title='SF')
 plt.tight_layout()
@@ -200,7 +199,7 @@ for sf in sf_list:
         sys.stdout.flush()
         pdr_averaging_sum = 0
         for repeat in range(AVERAGING):
-            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=NUMBER_OF_GWS)
+            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=sf)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
@@ -210,7 +209,6 @@ plt.ylim(bottom=0)
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
-# plt.title('topology_radius={}, packet_rate={}, gw_number=1'.format(TOPOLOGY_RADIUS, PACKET_RATE))
 plt.grid(True)
 plt.legend(loc='upper right', fontsize='small', title='SF', ncol=2)
 plt.tight_layout()
@@ -228,7 +226,7 @@ for number_of_gws in number_of_gws_list:
         sys.stdout.flush()
         pdr_averaging_sum = 0
         for repeat in range(AVERAGING):
-            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=number_of_gws)
+            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=number_of_gws, node_traffic_proportions=TRAFFIC_TYPE)
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
@@ -237,7 +235,6 @@ for number_of_gws in number_of_gws_list:
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
-# plt.title('topology_radius={}, packet_rate={}, sf=lowest'.format(TOPOLOGY_RADIUS, PACKET_RATE))
 plt.grid(True)
 plt.legend(fontsize='small', title='Number of GWs')
 plt.tight_layout()
@@ -255,17 +252,15 @@ for radius in radius_list:
         sys.stdout.flush()
         pdr_averaging_sum = 0
         for repeat in range(AVERAGING):
-            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=radius, number_of_gws=NUMBER_OF_GWS)
+            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=radius, number_of_gws=NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
         n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
     plt.plot(number_of_nodes_list, n_pdr_list, label=radius)
-
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
-# plt.title('packet_rate={}, gw_number={}, sf=lowest'.format(PACKET_RATE, GW_NUMBER))
 plt.grid(True)
 plt.legend(fontsize='small', title='Radius (m)')
 plt.tight_layout()
@@ -283,7 +278,7 @@ for packet_rate in packet_rate_list:
         sys.stdout.flush()
         pdr_averaging_sum = 0
         for repeat in range(AVERAGING):
-            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=NUMBER_OF_GWS)
+            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
             simulation = Simulation(topology=topology, packet_rate=packet_rate, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
@@ -293,8 +288,33 @@ plt.ylim(bottom=0)
 plt.xlim([0, 1000])
 plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
-# plt.title('topology_radius={}, gw_number={}, sf=lowest'.format(TOPOLOGY_RADIUS, GW_NUMBER))
 plt.grid(True)
 plt.legend(fontsize='small', title='Packet Rate (pps)')
 plt.tight_layout()
 plt.savefig('output/pr_pdr_r{}_g{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, SIMULATION_DURATION), dpi=200, transparent=True)
+
+
+plt.figure()
+traffic_type_list = [(1, 0), (0.8, 0.2), (0.5, 0.5), (0.2, 0.8), (0, 1)]
+for traffic_type in traffic_type_list:
+    sys.stdout.write('\n{} '.format(traffic_type))
+    sys.stdout.flush()
+    n_pdr_list = []
+    for number_of_nodes in number_of_nodes_list:
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        pdr_averaging_sum = 0
+        for repeat in range(AVERAGING):
+            topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=NUMBER_OF_GWS, node_traffic_proportions=traffic_type)
+            simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
+            simulation_result = simulation.run()
+            pdr_averaging_sum += simulation_result.pdr
+        n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
+    plt.plot(number_of_nodes_list, n_pdr_list, label=traffic_type)
+plt.xlim([0, 1000])
+plt.xlabel('Number of nodes')
+plt.ylabel('PDR (%)')
+plt.grid(True)
+plt.legend(fontsize='small', title='Traffic types')
+plt.tight_layout()
+plt.savefig('output/trfc_pdr_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)

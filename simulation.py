@@ -90,7 +90,7 @@ class Simulation:
         for event in self.eventQueue:
             tx_node = self.topology.get_node(event.source)
             X.append([tx_node.location.x, tx_node.location.y, event.sf.value])
-            y.append(event.status)
+            y.append(event.status.value)
         return train_test_split(X, y, test_size=test_size)
 
     def write_to_file(self, file_name):
@@ -119,7 +119,7 @@ class Simulation:
 
             # for event in self.eventQueue:
             #     tx_node = self.topology.get_node(event.source)
-            #     file.write('{},{},{},{}\n'.format(tx_node.location.x, tx_node.location.x, event.sf.value, event.status))
+            #     file.write('{},{},{},{}\n'.format(tx_node.location.x, tx_node.location.x, event.sf.name, event.status.name))
 
     def __get_sf(self, tx_node):
         if self.sf == PacketSf.SF_Lowest:
