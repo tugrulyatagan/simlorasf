@@ -29,9 +29,10 @@ collision_snir = [
     [-36, -36, -36, -36, -36,   6],
 ]
 
-systam_gain = 7  # total of system gains and system losses
+system_gain = 7  # total of system gains and system losses
 
-class PacketStatus:
+@enum.unique
+class PacketStatus(enum.Enum):
     pending = 0
     transmitted = 1
     interfered = 2
@@ -72,7 +73,7 @@ class Packet:
         return self.time < other.time
 
     def __repr__(self):
-        return '(t={:.3f},src={},dst={},sf={},bw={},dur={:.3f},p={},e={:.4f},stat={})'.format(self.time, self.source, self.destination, self.sf.value, self.bandwidth, self.duration, self.tx_power_dbm, self.tx_energy_j, self.status)
+        return '(t={:.3f},src={},dst={},sf={},bw={},dur={:.3f},p={},e={:.4f},stat={})'.format(self.time, self.source, self.destination, self.sf.name, self.bandwidth, self.duration, self.tx_power_dbm, self.tx_energy_j, self.status.name)
 
     @staticmethod
     def calculate_transmission_duration(sf, size):
@@ -96,17 +97,17 @@ class Packet:
     def get_receive_sensitivity(sf):
         # https://www.semtech.com/uploads/documents/DS_SX1276-7-8-9_W_APP_V5.pdf
         if sf == PacketSf.SF_7:
-            return -123 - systam_gain
+            return -123 - system_gain
         elif sf == PacketSf.SF_8:
-            return -126 - systam_gain
+            return -126 - system_gain
         elif sf == PacketSf.SF_9:
-            return -129 - systam_gain
+            return -129 - system_gain
         elif sf == PacketSf.SF_10:
-            return -132 - systam_gain
+            return -132 - system_gain
         elif sf == PacketSf.SF_11:
-            return -133 - systam_gain
+            return -133 - system_gain
         elif sf == PacketSf.SF_12:
-            return -136 - systam_gain
+            return -136 - system_gain
         else:
             raise Exception()
 

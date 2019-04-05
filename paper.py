@@ -17,8 +17,6 @@
 
 import random
 import sys
-import logging
-import argparse
 from matplotlib import rcParams
 rcParams['font.family'] = 'serif'
 import matplotlib.pyplot as plt
@@ -59,7 +57,7 @@ AVERAGING = 5
 # y_pred = classifier.predict(X_test)
 # print(classification_report(y_test, y_pred))
 # print(confusion_matrix(y_test, y_pred, labels=[1, 2, 3]))
-# print ("Accuracy is {:.3f} %".format(accuracy_score(y_test,y_pred)*100))
+# print ('Accuracy is {:.3f} %'.format(accuracy_score(y_test,y_pred)*100))
 #
 # simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=classifier.predict)
 # simulation.run()
@@ -186,7 +184,7 @@ plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
 # plt.title('topology_radius={}, packet_rate={}, gw_number={}'.format(PRED_TOPOLOGY_RADIUS, PACKET_RATE, PRED_GW_NUMBER))
 plt.grid(True)
-plt.legend(loc='upper right', fontsize='small', title="SF")
+plt.legend(loc='upper right', fontsize='small', title='SF')
 plt.tight_layout()
 plt.savefig('output/prediction_pdr_r{}_g{}_p{}_s{}.png'.format(PRED_TOPOLOGY_RADIUS, PRED_NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
@@ -214,7 +212,7 @@ plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
 # plt.title('topology_radius={}, packet_rate={}, gw_number=1'.format(TOPOLOGY_RADIUS, PACKET_RATE))
 plt.grid(True)
-plt.legend(loc='upper right', fontsize='small', title="SF", ncol=2)
+plt.legend(loc='upper right', fontsize='small', title='SF', ncol=2)
 plt.tight_layout()
 plt.savefig('output/sf_pdr_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
@@ -241,7 +239,7 @@ plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
 # plt.title('topology_radius={}, packet_rate={}, sf=lowest'.format(TOPOLOGY_RADIUS, PACKET_RATE))
 plt.grid(True)
-plt.legend(fontsize='small', title="Number of GWs")
+plt.legend(fontsize='small', title='Number of GWs')
 plt.tight_layout()
 plt.savefig('output/gw_pdr_r{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
@@ -269,7 +267,7 @@ plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
 # plt.title('packet_rate={}, gw_number={}, sf=lowest'.format(PACKET_RATE, GW_NUMBER))
 plt.grid(True)
-plt.legend(fontsize='small', title="Radius (m)")
+plt.legend(fontsize='small', title='Radius (m)')
 plt.tight_layout()
 plt.savefig('output/r_pdr_g{}_p{}_s{}.png'.format(NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
@@ -297,6 +295,6 @@ plt.xlabel('Number of nodes')
 plt.ylabel('PDR (%)')
 # plt.title('topology_radius={}, gw_number={}, sf=lowest'.format(TOPOLOGY_RADIUS, GW_NUMBER))
 plt.grid(True)
-plt.legend(fontsize='small', title="Packet Rate (pps)")
+plt.legend(fontsize='small', title='Packet Rate (pps)')
 plt.tight_layout()
 plt.savefig('output/pr_pdr_r{}_g{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, SIMULATION_DURATION), dpi=200, transparent=True)

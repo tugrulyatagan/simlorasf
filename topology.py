@@ -17,10 +17,10 @@
 
 import random
 import math
-import logging
 from location import Location
 from node import Node
 from node import Gateway
+from node import TrafficType
 from packet import Packet
 
 
@@ -57,7 +57,12 @@ class Topology:
         return nearestGateway, nearestDistance
 
     @staticmethod
-    def create_random_topology(number_of_nodes, radius, number_of_gws=1):
+    def create_random_topology(number_of_nodes, node_traffic_proportions, radius, number_of_gws=1):
+        assert 1 <= number_of_nodes <= 100000, 'unsupported number of nodes {}'.format(number_of_nodes)
+        assert 10 <= radius <= 40000, 'unsupported radius {}'.format(radius)
+        assert 1 <= number_of_gws <= 4, 'unsupported number of gateways {}'.format(number_of_gws)
+        assert sum(node_traffic_proportions) == 1, 'invalid node traffic proportions {}'.format(node_traffic_proportions)
+
         topology = Topology()
         topology.radius = radius
 
@@ -80,17 +85,27 @@ class Topology:
             topology.gateway_list.append(Gateway(location=Location(a, -a)))
             topology.gateway_list.append(Gateway(location=Location(-a, a)))
             topology.gateway_list.append(Gateway(location=Location(-a, -a)))
-        else:
-            logging.error('Unsupported number of gateways')
-            return None
 
         while len(topology.node_list) < number_of_nodes:
             x = random.randint(-radius, radius)
             y = random.randint(-radius, radius)
             if (x ** 2 + y ** 2) > (radius ** 2):
                 continue
+
             node = Node(location=Location(x, y))
             topology.node_list.append(node)
+
+        # Assign traffic generation types
+        for type_index, proportion in enumerate(node_traffic_proportions):
+            assigned = 0
+            while assigned < math.floor(proportion * number_of_nodes):
+                randomIndex = random.randint(0, number_of_nodes - 1)
+                if topology.node_list[randomIndex].trafficType is None:
+                    topology.node_list[randomIndex].trafficType = TrafficType(type_index)
+                    assigned = assigned + 1
+        for tx_node in topology.node_list:
+            if tx_node.trafficType is None:
+                tx_node.trafficType = TrafficType.Poisson
 
         # Find the lowest SF for nodes
         for tx_node in topology.node_list:

@@ -50,6 +50,10 @@ class SimulationResult:
 
 class Simulation:
     def __init__(self, topology, packet_rate, packet_size, simulation_duration, sf, sfPredictor=None):
+        assert 0.0001 <= packet_rate <= 10, 'unsupported packet rate {}'.format(packet_rate)
+        assert 51 <= packet_size <= 222, 'unsupported packet size {}'.format(packet_size)
+        assert 10 <= simulation_duration <= 100000, 'unsupported simulation duration {}'.format(simulation_duration)
+
         self.eventQueue = []
         self.topology = topology
         self.currentTime = 0
@@ -79,6 +83,8 @@ class Simulation:
         print('{}'.format(self.simulationResult))
 
     def get_training_data(self, test_size=0.2):
+        assert 0 <= test_size <= 1, 'invalid test size {}'.format(test_size)
+
         X = []
         y = []
         for event in self.eventQueue:
@@ -131,7 +137,7 @@ class Simulation:
                 logging.debug('sf_pred={},tx_node.lowestSf={},ynew={}'.format(sf_pred, tx_node.lowestSf, ynew))
                 if ynew == PacketStatus.transmitted:
                     return PacketSf(sf_pred)
-            logging.info("Suitable SF not found")
+            logging.info('Suitable SF not found')
             return tx_node.lowestSf
         elif self.sf == PacketSf.SF_Random:
             return PacketSf.get_random()

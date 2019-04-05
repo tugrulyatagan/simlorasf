@@ -24,6 +24,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from topology import Topology
 from simulation import Simulation
 from packet import PacketSf
+from node import TrafficType
 
 
 if __name__ == "__main__":
@@ -36,8 +37,9 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--duration', type=int, default=3600, help='simulation duration in second')
     parser.add_argument('-p', '--packetRate', type=float, default=0.01, help='packet rate in packet per second')
     parser.add_argument('-z', '--packetSize', type=int, default=60, help='packet size in byte')
+    parser.add_argument('-o', '--nodeTraffic', type=float, nargs=len(TrafficType), default=(1, 0), metavar=' '.join([type.name for type in TrafficType]), help='proportions of different traffic generator type nodes')
     parser.add_argument('-e', '--seed', type=int, help='random number generator seed')
-    parser.add_argument('-l', '--event', help='events log path')
+    parser.add_argument('-l', '--event', help='events log file path')
     parser.add_argument('-v', '--verbose', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='ERROR', help='verbose level')
     args = parser.parse_args()
     logging.basicConfig(level=logging.getLevelName(args.verbose), format='%(asctime)s %(levelname)s [%(filename)s:%(funcName)s:%(lineno)d] %(message)s')
@@ -51,7 +53,9 @@ if __name__ == "__main__":
         print('  Smart SF classifier: {}'.format(args.classifier))
     print('  Simulation duration: {} seconds'.format(args.duration))
     print('  Packet rate: {} packet per second'.format(args.packetRate))
+    print('  Packet interval: {} seconds'.format(1/args.packetRate))
     print('  Packet size: {} bytes'.format(args.packetSize))
+    print('  Percentage of periodic nodes {}: {}'.format([type.name for type in TrafficType], args.nodeTraffic))
     print('  Random number generator seed: {}'.format(args.seed))
     print('  Events log path: {}'.format(args.event))
     print('  Verbose level: {}'.format(args.verbose))
@@ -59,7 +63,7 @@ if __name__ == "__main__":
     if args.seed:
         random.seed(args.seed)
 
-    topology = Topology.create_random_topology(number_of_nodes=args.node, radius=args.radius, number_of_gws=args.gateway)
+    topology = Topology.create_random_topology(number_of_nodes=args.node, radius=args.radius, number_of_gws=args.gateway, node_traffic_proportions=args.nodeTraffic)
 
     sfPredictor = None
     if PacketSf[args.sf] == PacketSf.SF_Smart:
@@ -79,7 +83,7 @@ if __name__ == "__main__":
         print(classification_report(y_test, y_pred))
         print('Training confusion matrix:')
         print(confusion_matrix(y_test, y_pred, labels=[1, 2, 3]))
-        print("Training accuracy is {:.3f} %".format(accuracy_score(y_test, y_pred) * 100))
+        print('Training accuracy is {:.3f} %'.format(accuracy_score(y_test, y_pred) * 100))
         sfPredictor = classifier.predict
 
     simulation = Simulation(topology=topology, packet_rate=args.packetRate, packet_size=args.packetSize, simulation_duration=args.duration, sf=PacketSf[args.sf], sfPredictor=sfPredictor)
