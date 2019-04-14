@@ -74,3 +74,4 @@ class Node:
 class Gateway(Node):
     def __init__(self, location):
         Node.__init__(self, location)
+        height = 15

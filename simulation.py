@@ -56,7 +56,6 @@ class Simulation:
 
         self.eventQueue = []
         self.topology = topology
-        self.currentTime = 0
         self.packetRate = packet_rate
         self.packetSize = packet_size
         self.simulationDuration = simulation_duration
@@ -65,7 +64,7 @@ class Simulation:
         self.sfPredictor = sfPredictor
         Node.idCounter = 0
 
-    def add_to_event_queue(self, packet):
+    def __add_to_event_queue(self, packet):
         if packet is not None:
             bisect.insort_left(self.eventQueue, packet)
 
@@ -149,8 +148,7 @@ class Simulation:
         for tx_node in self.topology.node_list:
             tx_node.txList = []
             sf = self.__get_sf(tx_node)
-            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize,
-                                                        simulation_duration=self.simulationDuration, sf=sf))
+            self.__add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=sf))
 
         for event_index, event in enumerate(self.eventQueue):
             tx_node = self.topology.get_node(event.source)
@@ -265,8 +263,7 @@ class Simulation:
 
             # Schedule next event for this node
             sf = self.__get_sf(tx_node)
-            self.add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize,
-                                                        simulation_duration=self.simulationDuration, sf=sf))
+            self.__add_to_event_queue(tx_node.schedule_tx(packet_rate=self.packetRate, packet_size=self.packetSize, simulation_duration=self.simulationDuration, sf=sf))
 
         # Collect statistics
         cumulativeSuccessfulDataSize = 0
