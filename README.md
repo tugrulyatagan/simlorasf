@@ -78,7 +78,7 @@ Verbose level:
 python3 main.py -v INFO
 ```
 
-Example:
+Complex example:
 ```
 python3 main.py -r 7000 -g 3 -n 300 -s SF_Lowest -d 3600 -p 0.03 -z 65 -o 0.8 0.2 -e 76 -l log.txt -v INFO
 ```
@@ -88,24 +88,28 @@ Get figures and results in the paper:
 python3 paper.py
 ```
 
-## Source Code Hierarchy
+## Source Code Structure
 ### main.py
-Application code
+Command line interface for simulator. This file parses simulation inputs, executes simulation and reports results.
 
 ### simulation.py
-TODO
+Core simulation methods and classes resides in this file. 'run' method is the core function that executes simulation steps.
 
 ### packet.py
-TODO
+LoRa related packet information classes resides in this file. Methods for calculating transmission's duration, sensitivity, propagation and energy methods are in this file. Also SNIR matrix and packet status enumeration types are resides in this file.
 
 ### node.py
-TODO
+End node and gateway related classes resides in this file. Node traffic generator methods are defined in this file.
 
 ### topology.py
-TODO
+LoRaWAN network topology information such as node and gateway locations are kept in the classes in this file. Also random topology generator method is resides in this file.
 
 ### location.py
-TODO
+Location class that keeps x and y coordinate of nodes or gateways resides in this file.
 
 ### paper.py
-TODO
+This is an example application code for utilizing LoRa SF simulation framework. This example file generates figures and results in the paper.
+
+## Software Architecture
+### UML Class Diagram
+![Alt text](uml_class.png?raw=true "UML class diagram")
