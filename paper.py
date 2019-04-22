@@ -30,8 +30,8 @@ from packet import PacketSf
 random.seed(42)  # for now seed is constant
 
 # All units are SI base units
-TOPOLOGY_RADIUS = 5000  # meters
-NUMBER_OF_GWS = 3
+TOPOLOGY_RADIUS = 3000  # meters
+NUMBER_OF_GWS = 1
 PRED_TOPOLOGY_RADIUS = 5000  # meters
 PRED_NUMBER_OF_GWS = 3
 SIMULATION_DURATION = 3600  # seconds
