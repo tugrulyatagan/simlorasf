@@ -47,6 +47,17 @@ class SimulationResult:
         res += ' Total TX energy consumption: {:.3f} Joule'.format(self.txEnergyConsumption)
         return res
 
+    def __add__(self, other):
+        sumResult = SimulationResult()
+        sumResult.totalPacket = self.totalPacket + other.totalPacket
+        sumResult.successfulPacket = self.successfulPacket + other.successfulPacket
+        sumResult.underSensitivityPacket = self.underSensitivityPacket + other.underSensitivityPacket
+        sumResult.interferencePacket = self.interferencePacket + other.interferencePacket
+        sumResult.pdr = self.pdr + other.pdr
+        sumResult.throughput = self.throughput + other.throughput
+        sumResult.txEnergyConsumption = self.txEnergyConsumption + other.txEnergyConsumption
+        return sumResult
+
 
 class Simulation:
     def __init__(self, topology, packet_rate, packet_size, simulation_duration, sf, sfPredictor=None):
