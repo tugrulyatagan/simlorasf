@@ -34,11 +34,39 @@ TOPOLOGY_RADIUS = 3000  # meters
 NUMBER_OF_GWS = 1
 PRED_TOPOLOGY_RADIUS = 5000  # meters
 PRED_NUMBER_OF_GWS = 3
-SIMULATION_DURATION = 3600  # seconds
+SIMULATION_DURATION = 36  # seconds
 PACKET_RATE = 0.01  # per second
 PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
 TRAFFIC_TYPE = (1, 0)  # poisson, periodic
 AVERAGING = 5
+
+
+class SimulationFigure():
+    def __init__(self, x_axis, plot_names):
+        self.x_axis = x_axis
+        self.plot_names = plot_names
+        self.plot_data = {}
+        for plot_name in self.plot_names:
+            self.plot_data[plot_name] = []
+
+    def get_plot(self, xlabel, ylabel, ylim_bottom=None, ylim_top=None, xlim_left=None, xlim_right=None):
+        plt.figure()
+        for plot_name in self.plot_names:
+            plt.plot(self.x_axis, self.plot_data[plot_name], label=plot_name)
+
+        if ylim_bottom is not None:
+            plt.ylim(bottom=ylim_bottom)
+        if ylim_top is not None:
+            plt.ylim(top=ylim_top)
+        if xlim_left is not None:
+            plt.xlim(left=xlim_left)
+        if xlim_right is not None:
+            plt.xlim(right=xlim_right)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.grid(True)
+        plt.tight_layout()
+
 
 # NUMBER_OF_NODES = 100
 #
@@ -132,16 +160,18 @@ for radius in [3000, 5000, 7000, 10000]:
 
 number_of_nodes_list = range(50, 1001, 50)
 
-plt.figure()
-random_pdr_list = []
-prediction_dt_pdr_list = []
-prediction_svm_pdr_list = []
-lowest_pdr_list = []
+prediction_name_list = [PacketSf.SF_Random.name, 'SF_Smart_DTC', 'SF_Smart_SVM', PacketSf.SF_Lowest.name]
+prediction_pdr_figure = SimulationFigure(number_of_nodes_list, prediction_name_list)
+prediction_energy_figure = SimulationFigure(number_of_nodes_list, prediction_name_list)
 for number_of_nodes in number_of_nodes_list:
     random_pdr_averaging_sum = 0
     prediction_dt_pdr_averaging_sum = 0
     prediction_svm_pdr_averaging_sum = 0
     lowest_pdr_averaging_sum = 0
+    random_energy_averaging_sum = 0
+    prediction_dt_energy_averaging_sum = 0
+    prediction_svm_energy_averaging_sum = 0
+    lowest_energy_averaging_sum = 0
     sys.stdout.write('.')
     sys.stdout.flush()
     topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=PRED_TOPOLOGY_RADIUS, number_of_gws=PRED_NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
@@ -150,6 +180,7 @@ for number_of_nodes in number_of_nodes_list:
         simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Random)
         simulation_result = simulation.run()
         random_pdr_averaging_sum += simulation_result.pdr
+        random_energy_averaging_sum += simulation_result.txEnergyConsumption
 
         X_train, X_test, y_train, y_test = simulation.get_training_data(test_size=0)
 
@@ -162,159 +193,182 @@ for number_of_nodes in number_of_nodes_list:
         simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=DT_classifier.predict)
         simulation_result = simulation.run()
         prediction_dt_pdr_averaging_sum += simulation_result.pdr
+        prediction_dt_energy_averaging_sum += simulation_result.txEnergyConsumption
 
         simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Smart, sfPredictor=SVM_classifier.predict)
         simulation_result = simulation.run()
         prediction_svm_pdr_averaging_sum += simulation_result.pdr
+        prediction_svm_energy_averaging_sum += simulation_result.txEnergyConsumption
 
         simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
         simulation_result = simulation.run()
         lowest_pdr_averaging_sum += simulation_result.pdr
+        lowest_energy_averaging_sum += simulation_result.txEnergyConsumption
 
-    random_pdr_list.append(float(random_pdr_averaging_sum)/AVERAGING)
-    prediction_dt_pdr_list.append(float(prediction_dt_pdr_averaging_sum) / AVERAGING)
-    prediction_svm_pdr_list.append(float(prediction_svm_pdr_averaging_sum) / AVERAGING)
-    lowest_pdr_list.append(float(lowest_pdr_averaging_sum)/AVERAGING)
-plt.plot(number_of_nodes_list, random_pdr_list, label=PacketSf.SF_Random.name)
-plt.plot(number_of_nodes_list, prediction_dt_pdr_list, label='SF_Smart_DTC')
-plt.plot(number_of_nodes_list, prediction_svm_pdr_list, label='SF_Smart_SVM')
-plt.plot(number_of_nodes_list, lowest_pdr_list, label=PacketSf.SF_Lowest.name)
-plt.xlim([0, 1000])
-plt.xlabel('Number of nodes')
-plt.ylabel('PDR (%)')
-plt.grid(True)
+    prediction_pdr_figure.plot_data[PacketSf.SF_Random.name].append(float(random_pdr_averaging_sum)/AVERAGING)
+    prediction_pdr_figure.plot_data['SF_Smart_DTC'].append(float(prediction_dt_pdr_averaging_sum)/AVERAGING)
+    prediction_pdr_figure.plot_data['SF_Smart_SVM'].append(float(prediction_svm_pdr_averaging_sum)/AVERAGING)
+    prediction_pdr_figure.plot_data[PacketSf.SF_Lowest.name].append(float(lowest_pdr_averaging_sum)/AVERAGING)
+
+    prediction_energy_figure.plot_data[PacketSf.SF_Random.name].append(float(random_energy_averaging_sum)/AVERAGING)
+    prediction_energy_figure.plot_data['SF_Smart_DTC'].append(float(prediction_dt_energy_averaging_sum)/AVERAGING)
+    prediction_energy_figure.plot_data['SF_Smart_SVM'].append(float(prediction_svm_energy_averaging_sum)/AVERAGING)
+    prediction_energy_figure.plot_data[PacketSf.SF_Lowest.name].append(float(lowest_energy_averaging_sum)/AVERAGING)
+
+prediction_pdr_figure.get_plot(xlabel='Number of nodes', ylabel='PDR (%)', xlim_left=0, xlim_right=1000)
 plt.legend(loc='upper right', fontsize='small', title='SF')
-plt.tight_layout()
 plt.savefig('output/prediction_pdr_r{}_g{}_p{}_s{}.png'.format(PRED_TOPOLOGY_RADIUS, PRED_NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
+prediction_energy_figure.get_plot(xlabel='Number of nodes', ylabel='Transmit energy consumption (J)', xlim_left=0, xlim_right=1000)
+plt.legend(loc='upper right', fontsize='small', title='SF')
+plt.savefig('output/prediction_energy_r{}_g{}_p{}_s{}.png'.format(PRED_TOPOLOGY_RADIUS, PRED_NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
-plt.figure()
+
 sf_list = [PacketSf.SF_7, PacketSf.SF_8, PacketSf.SF_9, PacketSf.SF_10, PacketSf.SF_11, PacketSf.SF_12, PacketSf.SF_Lowest, PacketSf.SF_Random]
+sf_pdr_figure = SimulationFigure(number_of_nodes_list, [sf.name for sf in sf_list])
+sf_energy_figure = SimulationFigure(number_of_nodes_list, [sf.name for sf in sf_list])
+
 for sf in sf_list:
     sys.stdout.write('\n{} '.format(sf))
     sys.stdout.flush()
-    n_pdr_list = []
     for number_of_nodes in number_of_nodes_list:
         sys.stdout.write('.')
         sys.stdout.flush()
         pdr_averaging_sum = 0
+        energy_averaging_sum = 0
         for repeat in range(AVERAGING):
             topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=sf)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
-        n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
-    plt.plot(number_of_nodes_list, n_pdr_list, label=sf.name)
-plt.ylim(bottom=0)
-plt.xlim([0, 1000])
-plt.xlabel('Number of nodes')
-plt.ylabel('PDR (%)')
-plt.grid(True)
+            energy_averaging_sum += simulation_result.txEnergyConsumption
+        sf_pdr_figure.plot_data[sf.name].append(float(pdr_averaging_sum) / AVERAGING)
+        sf_energy_figure.plot_data[sf.name].append(float(energy_averaging_sum) / AVERAGING)
+
+sf_pdr_figure.get_plot(xlabel='Number of nodes', ylabel='PDR (%)', ylim_bottom=0, xlim_left=0, xlim_right=1000)
 plt.legend(loc='upper right', fontsize='small', title='SF', ncol=2)
-plt.tight_layout()
 plt.savefig('output/sf_pdr_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
+sf_energy_figure.get_plot(xlabel='Number of nodes', ylabel='Transmit energy consumption (J)', ylim_bottom=0, xlim_left=0, xlim_right=1000)
+plt.legend(loc='upper right', fontsize='small', title='SF', ncol=2)
+plt.savefig('output/sf_energy_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
-plt.figure()
+
 number_of_gws_list = range(1, 5)
+gw_pdr_figure = SimulationFigure(number_of_nodes_list, number_of_gws_list)
+gw_energy_figure = SimulationFigure(number_of_nodes_list, number_of_gws_list)
+
 for number_of_gws in number_of_gws_list:
     sys.stdout.write('\n{} '.format(number_of_gws))
     sys.stdout.flush()
-    n_pdr_list = []
     for number_of_nodes in number_of_nodes_list:
         sys.stdout.write('.')
         sys.stdout.flush()
         pdr_averaging_sum = 0
+        energy_averaging_sum = 0
         for repeat in range(AVERAGING):
             topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=number_of_gws, node_traffic_proportions=TRAFFIC_TYPE)
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
-        n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
-    plt.plot(number_of_nodes_list, n_pdr_list, label=number_of_gws)
-plt.xlim([0, 1000])
-plt.xlabel('Number of nodes')
-plt.ylabel('PDR (%)')
-plt.grid(True)
+            energy_averaging_sum += simulation_result.txEnergyConsumption
+        gw_pdr_figure.plot_data[number_of_gws].append(float(pdr_averaging_sum) / AVERAGING)
+        gw_energy_figure.plot_data[number_of_gws].append(float(energy_averaging_sum) / AVERAGING)
+
+gw_pdr_figure.get_plot(xlabel='Number of nodes', ylabel='PDR (%)', xlim_left=0, xlim_right=1000)
 plt.legend(fontsize='small', title='Number of GWs')
-plt.tight_layout()
 plt.savefig('output/gw_pdr_r{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
+gw_energy_figure.get_plot(xlabel='Number of nodes', ylabel='Transmit energy consumption (J)',  xlim_left=0, xlim_right=1000)
+plt.legend(fontsize='small', title='Number of GWs')
+plt.savefig('output/gw_energy_r{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
-plt.figure()
+
 radius_list = range(1000, 11001, 2000)
+r_pdr_figure = SimulationFigure(number_of_nodes_list, radius_list)
+r_energy_figure = SimulationFigure(number_of_nodes_list, radius_list)
+
 for radius in radius_list:
     sys.stdout.write('\n{} '.format(radius))
     sys.stdout.flush()
-    n_pdr_list = []
     for number_of_nodes in number_of_nodes_list:
         sys.stdout.write('.')
         sys.stdout.flush()
         pdr_averaging_sum = 0
+        energy_averaging_sum = 0
         for repeat in range(AVERAGING):
             topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=radius, number_of_gws=NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
-        n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
-    plt.plot(number_of_nodes_list, n_pdr_list, label=radius)
-plt.xlim([0, 1000])
-plt.xlabel('Number of nodes')
-plt.ylabel('PDR (%)')
-plt.grid(True)
+            energy_averaging_sum += simulation_result.txEnergyConsumption
+        r_pdr_figure.plot_data[radius].append(float(pdr_averaging_sum) / AVERAGING)
+        r_energy_figure.plot_data[radius].append(float(energy_averaging_sum) / AVERAGING)
+
+r_pdr_figure.get_plot(xlabel='Number of nodes', ylabel='PDR (%)', xlim_left=0, xlim_right=1000)
 plt.legend(fontsize='small', title='Radius (m)')
-plt.tight_layout()
 plt.savefig('output/r_pdr_g{}_p{}_s{}.png'.format(NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
+r_energy_figure.get_plot(xlabel='Number of nodes', ylabel='Transmit energy consumption (J)', xlim_left=0, xlim_right=1000)
+plt.legend(fontsize='small', title='Radius (m)')
+plt.savefig('output/r_energy_g{}_p{}_s{}.png'.format(NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
 
-plt.figure()
+
 packet_rate_list = [0.005, 0.01, 0.02, 0.04, 0.08]
+pr_pdr_figure = SimulationFigure(number_of_nodes_list, packet_rate_list)
+pr_energy_figure = SimulationFigure(number_of_nodes_list, packet_rate_list)
+
 for packet_rate in packet_rate_list:
     sys.stdout.write('\n{} '.format(packet_rate))
     sys.stdout.flush()
-    n_pdr_list = []
     for number_of_nodes in number_of_nodes_list:
         sys.stdout.write('.')
         sys.stdout.flush()
         pdr_averaging_sum = 0
+        energy_averaging_sum = 0
         for repeat in range(AVERAGING):
             topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=NUMBER_OF_GWS, node_traffic_proportions=TRAFFIC_TYPE)
             simulation = Simulation(topology=topology, packet_rate=packet_rate, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
-        n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
-    plt.plot(number_of_nodes_list, n_pdr_list, label=packet_rate)
-plt.ylim(bottom=0)
-plt.xlim([0, 1000])
-plt.xlabel('Number of nodes')
-plt.ylabel('PDR (%)')
-plt.grid(True)
+            energy_averaging_sum += simulation_result.txEnergyConsumption
+        pr_pdr_figure.plot_data[packet_rate].append(float(pdr_averaging_sum) / AVERAGING)
+        pr_energy_figure.plot_data[packet_rate].append(float(energy_averaging_sum) / AVERAGING)
+
+pr_pdr_figure.get_plot(xlabel='Number of nodes', ylabel='PDR (%)', ylim_bottom=0, xlim_left=0, xlim_right=1000)
 plt.legend(fontsize='small', title='Packet Rate (pps)')
-plt.tight_layout()
 plt.savefig('output/pr_pdr_r{}_g{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, SIMULATION_DURATION), dpi=200, transparent=True)
 
+pr_energy_figure.get_plot(xlabel='Number of nodes', ylabel='Transmit energy consumption (J)', ylim_bottom=0, xlim_left=0, xlim_right=1000)
+plt.legend(fontsize='small', title='Packet Rate (pps)')
+plt.savefig('output/pr_energy_r{}_g{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, SIMULATION_DURATION), dpi=200, transparent=True)
 
-plt.figure()
+
 traffic_type_list = [(1, 0), (0.8, 0.2), (0.5, 0.5), (0.2, 0.8), (0, 1)]
+trfc_pdr_figure = SimulationFigure(number_of_nodes_list, traffic_type_list)
+trfc_energy_figure = SimulationFigure(number_of_nodes_list, traffic_type_list)
+
 for traffic_type in traffic_type_list:
     sys.stdout.write('\n{} '.format(traffic_type))
     sys.stdout.flush()
-    n_pdr_list = []
     for number_of_nodes in number_of_nodes_list:
         sys.stdout.write('.')
         sys.stdout.flush()
         pdr_averaging_sum = 0
+        energy_averaging_sum = 0
         for repeat in range(AVERAGING):
             topology = Topology.create_random_topology(number_of_nodes=number_of_nodes, radius=TOPOLOGY_RADIUS, number_of_gws=NUMBER_OF_GWS, node_traffic_proportions=traffic_type)
             simulation = Simulation(topology=topology, packet_rate=PACKET_RATE, packet_size=PACKET_SIZE, simulation_duration=SIMULATION_DURATION, sf=PacketSf.SF_Lowest)
             simulation_result = simulation.run()
             pdr_averaging_sum += simulation_result.pdr
-        n_pdr_list.append(float(pdr_averaging_sum)/AVERAGING)
-    plt.plot(number_of_nodes_list, n_pdr_list, label=traffic_type)
-plt.xlim([0, 1000])
-plt.xlabel('Number of nodes')
-plt.ylabel('PDR (%)')
-plt.grid(True)
+            energy_averaging_sum += simulation_result.txEnergyConsumption
+        trfc_pdr_figure.plot_data[traffic_type].append(float(pdr_averaging_sum) / AVERAGING)
+        trfc_energy_figure.plot_data[traffic_type].append(float(energy_averaging_sum) / AVERAGING)
+
+trfc_pdr_figure.get_plot(xlabel='Number of nodes', ylabel='PDR (%)', xlim_left=0, xlim_right=1000)
 plt.legend(fontsize='small', title='Traffic types')
-plt.tight_layout()
 plt.savefig('output/trfc_pdr_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
+
+trfc_energy_figure.get_plot(xlabel='Number of nodes', ylabel='Transmit energy consumption (J)', xlim_left=0, xlim_right=1000)
+plt.legend(fontsize='small', title='Traffic types')
+plt.savefig('output/trfc_energy_r{}_g{}_p{}_s{}.png'.format(TOPOLOGY_RADIUS, NUMBER_OF_GWS, PACKET_RATE, SIMULATION_DURATION), dpi=200, transparent=True)
