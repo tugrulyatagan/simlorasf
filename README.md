@@ -1,10 +1,15 @@
 # simlorafs
-LoRa simulator to study Spreading Factor (SF) orthogonality.
+LoRa discrete event simulator to study Spreading Factor (SF) orthogonality. This tool provides framework for simulating LoRaWAN networks. The tool keeps an transmission queue. Every event in this queue is a transmission. Every transmission has time, spreading factor, source, size, duration, and status fields. Every node generate an event according to their traffic generation rate parameter and inserts this event to simulation event queue. Initially all events are in pending state. Simulation tool then iterates and executes events, then marks events status as transmitted, interfered or under sensitivity. After all events are executed, the tool calculates network PDR, throughput and transmit energy consumption.
+
+A command line parser is provided for interacting with the framework, this enables users to play with it without any programming or scripting. Also, an example script is provided to demonstrate usage of the framework. Python scikit-learn machine learning library is utilized for smart spreading factor schemes operations. Also, Python matplotlib library is used to generate figures.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2579366.svg)](https://doi.org/10.5281/zenodo.2579366)
 
-## Prerequisite
-This tool is supposed to run with both Python 2.x and 3.x, but it is only verified with Python 3.x.
+
+## Installation
+The simulation tool is developed and tested with Python 3.x. Python can be downloaded from official web page https://www.python.org/downloads
+
+The simulation tool requires specific Python modules to run. All of these modules can be installed by "pip" Python package manager. A new Python module can be installed with "pip install" command. Required Python modules for the simulation tool are:
 
 Required Python Modules:
 * matplotlib
@@ -12,7 +17,11 @@ Required Python Modules:
 * scipy
 * scikit-learn
 
-## Usage
+
+## Command Line Interface Usage
+
+Command line interface examples of the simulation tool are given below:
+
 Show help:
 ```
 python3 main.py -h
@@ -88,28 +97,32 @@ Get figures and results in the paper:
 python3 paper.py
 ```
 
-## Source Code Structure
-### main.py
-Command line interface for simulator. This file parses simulation inputs, executes simulation and reports results.
-
-### simulation.py
-Core simulation methods and classes resides in this file. 'run' method is the core function that executes simulation steps.
-
-### packet.py
-LoRa related packet information classes resides in this file. Methods for calculating transmission's duration, sensitivity, propagation and energy methods are in this file. Also SNIR matrix and packet status enumeration types are resides in this file.
-
-### node.py
-End node and gateway related classes resides in this file. Node traffic generator methods are defined in this file.
-
-### topology.py
-LoRaWAN network topology information such as node and gateway locations are kept in the classes in this file. Also random topology generator method is resides in this file.
-
-### location.py
-Location class that keeps x and y coordinate of nodes or gateways resides in this file.
-
-### paper.py
-This is an example application code for utilizing LoRa SF simulation framework. This example file generates figures and results in the paper.
 
 ## Software Architecture
+Source files of the simulation tool and their primary objectives are described below:
+
+### main.py
+Command line interface of the simulator. It parses simulation inputs, executes simulation and reports simulation results.
+
+### simulation.py
+Core simulation methods and classes are defined. 'run' method is the core function that executes simulation steps.
+
+### packet.py
+LoRa related packet information classes are defined. Methods for calculating transmission duration, receive sensitivity, propagation loss and transmission energy are in this file. Also SNIR matrix and packet status enumeration types resides in this file.
+
+### node.py
+End node and gateway related classes are defined. Also, node traffic generator methods are defined.
+
+### topology.py
+LoRaWAN network topology information such as node and gateway locations are defined. Also, random topology generator method is defined.
+
+### location.py
+Location class that keeps x and y coordinate of nodes or gateways are defined.
+
+### paper.py
+An example application code for utilizing LoRa spreading factor simulation Python framework. This example script generates figures and results in the paper.
+
 ### UML Class Diagram
+Relationships between these classes can be seen in UML class diagram.
+
 ![Alt text](uml_class.png?raw=true "UML class diagram")
