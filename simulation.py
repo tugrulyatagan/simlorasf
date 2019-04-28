@@ -137,7 +137,7 @@ class Simulation:
         elif self.sf == PacketSf.SF_Smart:
             # Xnew = [[tx_node.location.x, tx_node.location.y, tx_node.lowestSf.value]]
             # ynew = self.sfPredictor(Xnew)[0]
-            # if ynew == PacketStatus.interfered and tx_node.lowestSf.value < 12:
+            # if ynew == PacketStatus.interfered.value and tx_node.lowestSf.value < 12:
             #     return PacketSf(tx_node.lowestSf.value + 1)
             # else:
             #     return tx_node.lowestSf
@@ -145,7 +145,7 @@ class Simulation:
                 Xnew = [[tx_node.location.x, tx_node.location.y, sf_pred]]
                 ynew = self.sfPredictor(Xnew)[0]
                 logging.debug('sf_pred={},tx_node.lowestSf={},ynew={}'.format(sf_pred, tx_node.lowestSf, ynew))
-                if ynew == PacketStatus.transmitted:
+                if ynew == PacketStatus.transmitted.value:
                     return PacketSf(sf_pred)
             logging.info('Suitable SF not found')
             return tx_node.lowestSf
