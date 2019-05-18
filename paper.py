@@ -325,7 +325,7 @@ TOPOLOGY_RADIUS = 3000  # meters
 NUMBER_OF_GWS = 1
 PRED_TOPOLOGY_RADIUS = 5000  # meters
 PRED_NUMBER_OF_GWS = 3
-SIMULATION_DURATION = 360  # seconds
+SIMULATION_DURATION = 3600  # seconds
 PACKET_RATE = 0.01  # per second
 PACKET_SIZE = 60  # bytes, header + payload, 13 + max(51 to 222)
 TRAFFIC_TYPE = (1, 0)  # poisson, periodic
@@ -396,3 +396,25 @@ plot_trfc(number_of_nodes_list=NUMBER_OF_NODES_LIST,
         packet_rate=PACKET_RATE,
         packet_size=PACKET_SIZE,
         simulation_duration=SIMULATION_DURATION)
+
+# for radius in [3000, 5000, 7000, 10000, 13000]:
+#     for gw in [3, 4]:
+#         plot_prediction(number_of_nodes_list=NUMBER_OF_NODES_LIST,
+#                 averaging=AVERAGING,
+#                 topology_radius=radius,
+#                 number_of_gws=gw,
+#                 packet_rate=PACKET_RATE,
+#                 packet_size=PACKET_SIZE,
+#                 simulation_duration=SIMULATION_DURATION,
+#                 traffic_type=TRAFFIC_TYPE)
+#
+# for radius in [3000, 5000, 7000, 10000, 13000]:
+#     for gw in [1, 2, 3]:
+#         plot_sf(number_of_nodes_list=NUMBER_OF_NODES_LIST,
+#                 averaging=AVERAGING,
+#                 topology_radius=radius,
+#                 number_of_gws=gw,
+#                 packet_rate=PACKET_RATE,
+#                 packet_size=PACKET_SIZE,
+#                 simulation_duration=SIMULATION_DURATION,
+#                 traffic_type=TRAFFIC_TYPE)
