@@ -4,6 +4,18 @@ LoRa discrete event simulator to study Spreading Factor (SF) orthogonality. This
 A command line parser is provided for interacting with the framework, this enables users to play with it without any programming or scripting. Also, an example script is provided to demonstrate usage of the framework. Python scikit-learn machine learning library is utilized for smart spreading factor schemes operations. Also, Python matplotlib library is used to generate figures.
 
 
+## Acknowledgments
+This work was developed as part of a Master of Science thesis at Istanbul Technical University, under the supervision of Prof. Sema Oktug.
+
+Publications:
+
+* T. Yatagan and S. Oktug, "Smart Spreading Factor Assignment for LoRaWANs," 2019 IEEE Symposium on Computers and Communications (ISCC), Barcelona, Spain, 2019, pp. 1-7. [![DOI](https://zenodo.org/badge/DOI/10.1109/ISCC47284.2019.8969608.svg)](https://doi.org/10.1109/ISCC47284.2019.8969608)
+
+* T. Yatagan, "Smart Spreading Factor Assignment for LoRaWANs," M.S. thesis, Istanbul Technical University, Istanbul, Turkey, 2019. [Online]. Available: Turkish Council of Higher Education Thesis Center [No 557097](https://tez.yok.gov.tr/UlusalTezMerkezi/TezGoster?key=Mir2lXQK1dkmQ9Ige3PZbpjXYNGXhXNeBA_KevbGRLGvHRe0OPaWEuKOGMdS9yoQ).
+
+* T. Yatagan, tugrulyatagan/simlorasf, May 2019, [Online] Available: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3072925.svg)](https://doi.org/10.5281/zenodo.3072925).
+
+
 ## Installation
 The simulation tool is developed and tested with Python 3.x. Python can be downloaded from official web page https://www.python.org/downloads
 
